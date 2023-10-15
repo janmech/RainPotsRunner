@@ -10,6 +10,7 @@ TARGET = hello
 
 
 SRCS = $(wildcard $(foreach fd, $(SOURCE_PATH), $(fd)/*.c))
+SRCS_CPP = $(wildcard $(foreach fd, $(SOURCE_PATH), $(fd)/*.cpp))
 
 .PHONY: clean
 
@@ -22,9 +23,10 @@ clean:
 	rm -rf $(BUILD_PATH)*.o 
 	rm -rf hello
 
-$(TARGET): $(SRCS)
+$(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo "\n***************************\n"
 	@echo $(SRCS)
+	@echo $(SRCS_CPP)
 	@echo "\n***************************\n"
 	$(CC) $(CFLAGGS) $^ $(TARGET).cpp -o $(BUILD_PATH)$@ 
 

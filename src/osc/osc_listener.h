@@ -1,5 +1,9 @@
 #ifndef __OOC_LISTENER__
 #define __OSC_LISTENER__
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <arpa/inet.h>
@@ -9,12 +13,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 #include "tinyosc/tinyosc.h"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     void *osc_lisenter_thread(void *arg);
 
