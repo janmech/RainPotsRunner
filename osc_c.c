@@ -28,7 +28,7 @@ void* test_2_thread(void * arg) {
 	return NULL;
 }
 
-int main()
+int __main()
 {
 	pid_t pid = getpid();
 	printf("started: %d\n", pid);

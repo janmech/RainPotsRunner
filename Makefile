@@ -2,7 +2,7 @@ CC = gcc
 CFLAGGS = -g -Wall -pthread -lwiringPi
 
 BUILD_PATH= build/
-SOURCE_PATH= src src/*  src/*/* src/*/*  
+SOURCE_PATH= src src/*  src/*/* src/*/*  tinyosc
 
 # TARGET = hello
 
