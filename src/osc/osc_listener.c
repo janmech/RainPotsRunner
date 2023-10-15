@@ -62,6 +62,7 @@ void *osc_lisenter_thread(void *arg)
 					printf("is message\n");
 					tosc_printMessage(&osc);
 					
+					
 				}
 			}
 		}

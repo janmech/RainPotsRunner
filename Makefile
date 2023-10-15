@@ -23,9 +23,9 @@ clean:
 	rm -rf hello
 
 $(TARGET): $(SRCS)
-	echo "\n***************************\n"
-	echo $(SRCS)
-	echo "\n***************************\n"
+	@echo "\n***************************\n"
+	@echo $(SRCS)
+	@echo "\n***************************\n"
 	$(CC) $(CFLAGGS) $^ $(TARGET).cpp -o $(BUILD_PATH)$@ 
 
 
