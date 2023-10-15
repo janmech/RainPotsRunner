@@ -1,8 +1,10 @@
 CC = gcc
-CFLAGGS = -g -Wall
+CFLAGGS = -g -Wall -pthread -lwiringPi
 
 BUILD_PATH= build/
-SOURCE_PATH= src src/*  src/*/* 
+SOURCE_PATH= src src/*  src/*/* src/*/*  
+
+# TARGET = hello
 
 TARGET = hello
 
@@ -21,7 +23,9 @@ clean:
 	rm -rf hello
 
 $(TARGET): $(SRCS)
+	echo "\n***************************\n"
 	echo $(SRCS)
+	echo "\n***************************\n"
 	$(CC) $(CFLAGGS) $^ $(TARGET).c -o $(BUILD_PATH)$@ 
 
 

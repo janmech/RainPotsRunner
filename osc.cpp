@@ -8,14 +8,7 @@
 #include <pthread.h>
 #include "src/test.h"
 #include "src/subdir2/test2.h"
-#include <wiringPi.h>
 
-void handle_sigint()
-{
-	pid_t pid = getpid();
-	printf("\nterminated: %d\n", pid);
-	exit(0);
-}
 
 void* test_1_thread(void * arg) {
 	while (true)
@@ -37,7 +30,6 @@ void* test_2_thread(void * arg) {
 
 int main()
 {
-	signal(SIGINT, handle_sigint);
 	pid_t pid = getpid();
 	printf("started: %d\n", pid);
 	pthread_t serial_connector;
