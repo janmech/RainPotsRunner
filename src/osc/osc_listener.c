@@ -1,5 +1,7 @@
 #include "osc_listener.h"
 
+
+
 void *osc_lisenter_thread(void *arg)
 {
 
@@ -57,7 +59,9 @@ void *osc_lisenter_thread(void *arg)
 				{
 					tosc_message osc;
 					tosc_parseMessage(&osc, buffer, len);
+					printf("is message\n");
 					tosc_printMessage(&osc);
+					
 				}
 			}
 		}

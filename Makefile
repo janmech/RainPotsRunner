@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGGS = -g -Wall -pthread -lwiringPi
+CFLAGGS = -g -Wall -pthread -lwiringPi -lstdc++
 
 BUILD_PATH= build/
 SOURCE_PATH= src src/*  src/*/* src/*/*  tinyosc
@@ -26,7 +26,7 @@ $(TARGET): $(SRCS)
 	echo "\n***************************\n"
 	echo $(SRCS)
 	echo "\n***************************\n"
-	$(CC) $(CFLAGGS) $^ $(TARGET).c -o $(BUILD_PATH)$@ 
+	$(CC) $(CFLAGGS) $^ $(TARGET).cpp -o $(BUILD_PATH)$@ 
 
 
 foo:
