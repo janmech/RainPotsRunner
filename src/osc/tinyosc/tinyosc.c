@@ -173,7 +173,7 @@ void tosc_writeBundle(tosc_bundle *b, uint64_t timetag, char *buffer, const int 
 }
 
 // always writes a multiple of 4 bytes
-static uint32_t tosc_vwrite(char *buffer, const int len,
+uint32_t tosc_vwrite(char *buffer, const int len,
     const char *address, const char *format, va_list ap) {
   memset(buffer, 0, len); // clear the buffer
   uint32_t i = (uint32_t) strlen(address);
@@ -275,6 +275,10 @@ uint32_t tosc_writeMessage(char *buffer, const int len,
   va_end(ap);
   return i; // return the total number of bytes written
 }
+
+
+
+
 
 void tosc_printOscBuffer(char *buffer, const int len) {
   // parse the buffer contents (the raw OSC bytes)

@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #define TINYOSC_TIMETAG_IMMEDIATELY 1L
 
@@ -41,6 +42,7 @@ typedef struct tosc_bundle {
 } tosc_bundle;
 
 
+uint32_t tosc_vwrite(char *buffer, const int len, const char *address, const char *format, va_list ap);
 
 /**
  * Returns true if the buffer refers to a bundle of OSC messages. False otherwise.

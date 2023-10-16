@@ -163,7 +163,7 @@
                             "FULL_PATH": "/rnbo/listeners/entries",
                             "TYPE": "ss",
                             "VALUE": [
-                                "127.0.0.1:9999",
+                                "127.0.0.1:5555",
                                 "192.168.1.132:8003"
                             ],
                             "ACCESS": 1,

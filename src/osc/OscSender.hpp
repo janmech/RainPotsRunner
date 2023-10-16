@@ -5,14 +5,13 @@ extern "C"
 {
 #endif
 
-#include "tinyosc/tinyosc.h"
-
-    void *osc_sender_runner(void *arg);
 #ifdef __cplusplus
 }
 #endif
+#include "tinyosc/tinyosc.h"
 #include <string>
 #include <iostream>
+#include <cstdarg>
 #include "../TheadClass/ThreadClass.h"
 
 class OscSender : public ThreadClass
@@ -24,6 +23,9 @@ public:
     ~OscSender()
     { /* empty */
     }
+    void addRNBOListenter();
+
+    void sendMessage(const char *address, const char *format, ...);
 
     void inc_val()
     {
@@ -31,6 +33,11 @@ public:
     }
 
 protected:
+    int inc = 0;
+    int socket_out = -1;
+    struct sockaddr_in addr_out;
+
+    int openOutSocket();
     void threadLoop()
     {
         while (this->keep_running)
@@ -38,10 +45,9 @@ protected:
             printf("OscSender::run....%d\n", this->inc);
             sleep(1);
         }
+        close(this->socket_out);
         std::cout << "\tOscSender Terminated" << std::endl;
     }
-
-    int inc = 0;
 
 private:
     static void *InternalThreadEntryFunc(void *This)
