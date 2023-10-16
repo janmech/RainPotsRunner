@@ -6,9 +6,9 @@ CFLAGGS = -g -pthread -lwiringPi -lstdc++ -ljsoncpp -lcurl
 BUILD_PATH= build/
 SOURCE_PATH= src src/*  src/*/* src/*/*  tinyosc
 
-# TARGET = hello
+TARGET = main
 
-TARGET = json_test
+# TARGET = json_test
 
 
 SRCS = $(wildcard $(foreach fd, $(SOURCE_PATH), $(fd)/*.c))

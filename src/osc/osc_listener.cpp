@@ -1,6 +1,6 @@
 #include "osc_listener.h"
 
-void *osc_lisenter_thread(void *arg)
+void *osc_lisenter_run(void *arg)
 {
 	// const char *osc_[4] = {"Blue", "Red", "Orange", "Yellow"};
 

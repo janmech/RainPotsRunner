@@ -1,4 +1,4 @@
-#ifndef __OOC_LISTENER__
+#ifndef __OSC_LISTENER__
 #define __OSC_LISTENER__
 #ifdef __cplusplus
 extern "C"
@@ -18,7 +18,7 @@ extern "C"
 
 #include "tinyosc/tinyosc.h"
 
-    void *osc_lisenter_thread(void *arg);
+    void *osc_lisenter_run(void *arg);
 
 #ifdef __cplusplus
 }
