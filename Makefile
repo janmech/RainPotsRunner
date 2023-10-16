@@ -1,12 +1,14 @@
-CC = gcc
-CFLAGGS = -g -Wall -pthread -lwiringPi -lstdc++
+CC = g++
+CFLAGGS = -g -pthread -lwiringPi -lstdc++ -ljsoncpp -lcurl
+
+#-Werror
 
 BUILD_PATH= build/
 SOURCE_PATH= src src/*  src/*/* src/*/*  tinyosc
 
 # TARGET = hello
 
-TARGET = hello
+TARGET = json_test
 
 
 SRCS = $(wildcard $(foreach fd, $(SOURCE_PATH), $(fd)/*.c))
@@ -28,7 +30,7 @@ $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo $(SRCS)
 	@echo $(SRCS_CPP)
 	@echo "\n***************************\n"
-	$(CC) $(CFLAGGS) $^ $(TARGET).cpp -o $(BUILD_PATH)$@ 
+	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$@ 
 
 
 foo:

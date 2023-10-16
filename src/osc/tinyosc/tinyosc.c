@@ -64,7 +64,7 @@ bool tosc_isBundle(const char *buffer) {
 void tosc_parseBundle(tosc_bundle *b, char *buffer, const int len) {
   b->buffer = (char *) buffer;
   b->marker = buffer + 16; // move past '#bundle ' and timetag fields
-  b->bufLen = len;
+  b->bufLen = len; 
   b->bundleLen = len;
 }
 

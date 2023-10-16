@@ -1,4 +1,7 @@
 #include "hello.h"
+#include <iostream>
+
+// using namespace std;
 
 bool keep_running = true;
 bool *p_keep_running = &keep_running;
@@ -37,6 +40,10 @@ void *test_2_thread(void *arg)
 
 int main()
 {
+	char sample[] = "GeeksforGeeks";
+
+	std::cout << sample << " - A computer science portal for geeks";
+
 	signal(SIGINT, (void (*)(int))handle_sigint);
 	pid_t pid = getpid();
 	printf("started: %d\n", pid);
