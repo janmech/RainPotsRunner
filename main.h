@@ -20,7 +20,7 @@ extern "C"
 }
 #include <iostream>
 #include "src/osc/osc_listener.h"
-#include "src/osc/osc_sender.h"
+#include "src/osc/OscSender.h"
 #endif
 
 #endif //__MAIN_PROGRAMM__

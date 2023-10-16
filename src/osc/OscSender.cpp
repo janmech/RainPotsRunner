@@ -1,4 +1,4 @@
-#include "osc_sender.h"
+#include "OscSender.h"
 
 void *osc_sender_runner(void *arg)
 {

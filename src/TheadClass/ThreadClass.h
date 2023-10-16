@@ -1,5 +1,5 @@
-#ifndef __OSC_SENDER__
-#define __OSC_SENDER__
+#ifndef __THREAD_CLASS__
+#define __THREAD_CLASS__
 #ifdef __cplusplus
 extern "C"
 {
@@ -17,34 +17,32 @@ extern "C"
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <pthread.h>
-#include "tinyosc/tinyosc.h"
-
-    void *osc_sender_runner(void *arg);
 #ifdef __cplusplus
 }
 #endif
+
 #include <string>
 #include <iostream>
 
-class OscSender
+class ThreadClass
 {
 public:
-    OscSender()
+    ThreadClass()
     { /* empty */
     }
-    ~OscSender()
+    virtual ~ThreadClass()
     { /* empty */
     }
     
     /** Returns true if the thread was successfully started, false if there was an error starting the thread */
     bool start()
     {
-        return (pthread_create(&_thread, NULL, InternalThreadEntryFunc, this) == 0);
+        return (pthread_create(&_thread, NULL, InternalThreadFunc, this) == 0);
     }
 
     void stop()
     {
-        this->keep_running = false;
+        keep_running = false;
         (void)pthread_join(_thread, NULL);
     }
 
@@ -54,33 +52,18 @@ public:
         (void)pthread_join(_thread, NULL);
     }
 
-    void inc_val()
-    {
-        this->inc++;
-    }
-
 protected:
-    void threadLoop()
-    {
-        while (this->keep_running)
-        {
-            printf("OscSender::run....%d\n", this->inc);
-            sleep(1);
-        }
-        std::cout << "\tOscSender Terminated" << std::endl;
-    }
-
-    int inc = 0;
+    virtual void threadLoop() = 0;
     bool keep_running = true;
 
 private:
-    static void *InternalThreadEntryFunc(void *This)
+    static void *InternalThreadFunc(void *This)
     {
-        ((OscSender *)This)->threadLoop();
+        ((ThreadClass *)This)->threadLoop();
         return NULL;
     }
 
     pthread_t _thread;
 };
 
-#endif // __OSC_SENDER__
+#endif // __THREAD_CLASS__
