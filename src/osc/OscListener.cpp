@@ -12,7 +12,7 @@ void OscListener::threadLoop()
     bind(fd, (struct sockaddr *)&sin, sizeof(struct sockaddr_in));
     while (this->keep_running)
     {
-        std::cout << "listener running" << std::endl;
+        // std::cout << "listener running" << std::endl;
         fd_set readSet;
         FD_ZERO(&readSet);
         FD_SET(fd, &readSet);
@@ -24,7 +24,6 @@ void OscListener::threadLoop()
             int len = 0;
             while ((len = (int)recvfrom(fd, buffer, sizeof(buffer), 0, &sa, &sa_len)) > 0)
             {
-                printf("got message\n");
                 if (tosc_isBundle(buffer))
                 {
                     tosc_bundle bundle;
@@ -39,7 +38,33 @@ void OscListener::threadLoop()
                 {
                     tosc_message osc;
                     tosc_parseMessage(&osc, buffer, len);
-                    tosc_printMessage(&osc);
+                    // tosc_printMessage(&osc);
+                    std::string address(tosc_getAddress(&osc));
+                    std::cout << "ADDRESS::" << address << std::endl;
+                    if (address == "/rnbo/inst/0/presets/load")
+                    {
+                        std::cout << "\n\nSTART LOADING\n"
+                                  << std::endl;
+                        this->data_handler->clearPathValues();
+                        this->data_handler->setCollectValues(true);
+                    }
+                    if (address == "/rnbo/inst/0/presets/loaded")
+                    {
+                        std::cout << "\n\nFINISHED LOADING\n"
+                                  << std::endl;
+                        this->data_handler->setCollectValues(false);
+                        this->data_handler->printPathValues();
+                    }
+
+                    std::string suffix = "normalized";
+
+                    if (
+                        this->data_handler->getCollectValues() && std::mismatch(suffix.rbegin(), suffix.rend(), address.rbegin()).first == suffix.rend())
+                    {
+                        float value = tosc_getNextFloat(&osc);
+                        printf("value__: %.3f\n", value);
+                        this->data_handler->setPathValue(address, value);
+                    };
                 }
             }
         }

@@ -10,15 +10,17 @@ extern "C"
 }
 #endif
 #include <string>
+#include <string_view>
 #include <iostream>
 #include "../TheadClass/ThreadClass.h"
-
+#include "../data/DataHandler.hpp"
 
 class OscListener : public ThreadClass
 {
 public:
-    OscListener()
-    { /* empty */
+    OscListener(DataHandler *data_handler)
+    {
+        this->data_handler = data_handler;
     }
 
     ~OscListener()
@@ -26,6 +28,7 @@ public:
     }
 
 protected:
+    DataHandler *data_handler;
     void threadLoop();
 
 private:

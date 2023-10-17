@@ -14,6 +14,7 @@ TARGET = main
 SRCS = $(wildcard $(foreach fd, $(SOURCE_PATH), $(fd)/*.c))
 SRCS_CPP = $(wildcard $(foreach fd, $(SOURCE_PATH), $(fd)/*.cpp))
 
+
 .PHONY: clean
 
 # $@ = target name
@@ -23,7 +24,7 @@ all: clean $(TARGET)
 
 clean:
 	rm -rf $(BUILD_PATH)*.o 
-	rm -rf hello
+	rm -rf $(TARGET)
 
 $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo "\n***************************\n"
@@ -31,10 +32,6 @@ $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo $(SRCS_CPP)
 	@echo "\n***************************\n"
 	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$@ 
-
-
-foo:
-	echo $(SRCS)
 
 
 

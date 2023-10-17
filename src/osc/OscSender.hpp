@@ -42,7 +42,7 @@ protected:
     {
         while (this->keep_running)
         {
-            printf("OscSender::run....%d\n", this->inc);
+            // printf("OscSender::run....%d\n", this->inc);
             sleep(1);
         }
         close(this->socket_out);

@@ -16,6 +16,48 @@ config_map_t DataHandler::getParams(bool force_load)
     return this->param_config;
 }
 
+bool DataHandler::getCollectValues()
+{
+    return this->collect_values;
+}
+
+void DataHandler::setCollectValues(bool collect)
+{
+    this->collect_values = collect;
+}
+
+void DataHandler::clearPathValues()
+{
+    path_value_map_t::iterator iterator = this->path_values.begin();
+    while (iterator != this->path_values.end())
+    {
+        std::string path = iterator->first;
+        path_value_t path_value = iterator->second;
+        this->path_values[path].loaded = false;
+        this->path_values[path].value = 0.;
+        iterator++;
+    }
+}
+
+void DataHandler::setPathValue(std::string path, float value)
+{
+    if (this->path_values.find(path) != this->path_values.end())
+    {
+        this->path_values[path].loaded = true;
+        this->path_values[path].value = value;
+    }
+}
+
+void DataHandler::printPathValues()
+{
+    path_value_map_t::iterator iterator = this->path_values.begin();
+    while (iterator != this->path_values.end())
+    {
+        std::cout << iterator->first << "\n  loaded: " << iterator->second.loaded << "\n  value: " << iterator->second.value << std::endl;
+        iterator++;
+    }
+}
+
 void DataHandler::printParamConfig(bool force_load)
 {
     if (force_load)
@@ -26,7 +68,7 @@ void DataHandler::printParamConfig(bool force_load)
 
     std::cout << "\n\nLOADED PAINPOTS CONFIG:" << std::endl;
 
-    std::map<int, std::map<int, ctl_settings_t>>::iterator unit_iterator = config_map.begin();
+    config_map_t::iterator unit_iterator = config_map.begin();
     while (unit_iterator != config_map.end())
     {
         int unit = unit_iterator->first;
@@ -110,9 +152,10 @@ void DataHandler::loadConfig()
                 ctl_settings.steps = value_steps;
                 ctl_settings.path = value_path;
                 config_map[value_unit].insert(std::make_pair(value_ctl, ctl_settings));
+                path_value_t path_value_entry;
+                this->path_values.insert(std::make_pair(value_path, path_value_entry));
             }
         }
     }
-
     this->param_config = config_map;
 }
