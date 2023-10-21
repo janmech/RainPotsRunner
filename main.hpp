@@ -15,8 +15,8 @@ extern "C"
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <termios.h>
+// #include <fcntl.h>
+// #include <termios.h>
 #include "src/test.h"
 
 #ifdef __cplusplus
@@ -25,6 +25,7 @@ extern "C"
 #include "src/osc/OscSender.hpp"
 #include "src/osc/OscListener.hpp"
 #include "src/data/DataHandler.hpp"
+#include "src/serial/SerialConnector.hpp"
 #endif
 
 
