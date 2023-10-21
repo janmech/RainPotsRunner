@@ -19,9 +19,18 @@ void OscSender::threadLoop()
             this->getOscMessageData(msg, &message_data);
             if (message_data.path != "")
             {
+                const char *path = message_data.path.c_str();
+                const char *format = message_data.format.c_str();
+                if (this->debug)
+                {
+                    std::cout << "SENDING OSC MESSGSE TO:" << std::endl
+                              << "\t" << path << std::endl
+                              << "\t" << format << std::endl
+                              << "\t" << message_data.val_float << std::endl;
+                }
                 this->sendMessage(
-                    message_data.path.c_str(),
-                    message_data.format.c_str(),
+                    path,
+                    format,
                     message_data.val_float);
             }
         }
@@ -45,7 +54,7 @@ void OscSender::getOscMessageData(queue_entry_message_t *queue_message, msg_osc_
     switch (queue_message->type)
     {
     case OSC_MESSAGE_TYPE_CC:
-        osc_message_data->format = "i";
+        osc_message_data->format = "f";
         // TODO: Normalize properly and condider center config
         osc_message_data->val_float = (float)((queue_message->buffer[3] << 7) | queue_message->buffer[2]) / 511.;
         break;
@@ -65,6 +74,12 @@ void OscSender::getOscMessageData(queue_entry_message_t *queue_message, msg_osc_
 
 void OscSender::addRNBOListenter()
 {
+
+    this->sendMessage("/rnbo/listeners/add", "s", "127.0.0.1:5555");
+}
+
+void OscSender::sendMessage(const char *address, const char *format, ...)
+{
     if (this->socket_out < 0)
     {
         try
@@ -76,17 +91,6 @@ void OscSender::addRNBOListenter()
             std::cerr << "RNBO Listener not added: " << msg << std::endl;
             return;
         }
-    }
-
-    this->sendMessage("/rnbo/listeners/add", "s", "127.0.0.1:5555");
-}
-
-void OscSender::sendMessage(const char *address, const char *format, ...)
-{
-    if (this->debug)
-    {
-        std::string addr_string = std::string(address);
-        std::cout << "SENDING OSC MESSGSE TO " << addr_string << std::endl;
     }
     char buffer[2048];
     va_list ap;
@@ -109,7 +113,9 @@ int OscSender::openOutSocket()
     out_addr.sin_port = htons(1234);
     this->addr_out = out_addr;
     int res = inet_pton(AF_INET, "127.0.0.1", &out_addr.sin_addr);
-    printf("%d\n", res);
+    if(this->debug)  {
+         printf("inet_pton %d\n", res);
+    }
 
     bind(this->socket_out, (struct sockaddr *)&this->addr_out, sizeof(struct sockaddr_in));
     return this->socket_out;

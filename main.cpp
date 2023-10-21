@@ -48,7 +48,6 @@ int main(int argc, char *argv[])
 
 	while (running)
 	{
-		std::cout << "MAIN THREAD" << std::endl;
 		sleep(1);
 	}
 	std::cout << "\nmain done!" << std::endl;
