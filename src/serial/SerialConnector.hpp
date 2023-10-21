@@ -31,8 +31,9 @@ extern "C"
 class SerialConnector : public ThreadClass
 {
 public:
-    SerialConnector(OscSender * osc_sender)
+    SerialConnector(OscSender *osc_sender, bool debug = false)
     {
+        this->debug = debug;
         this->osc_sender = osc_sender;
     }
 
@@ -41,7 +42,8 @@ public:
     }
 
 protected:
-    OscSender * osc_sender;
+    bool debug = false;
+    OscSender *osc_sender;
     void threadLoop();
 
 private:

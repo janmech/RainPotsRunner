@@ -80,12 +80,15 @@ void SerialConnector::threadLoop()
             }
             if (msg_packet_index == msg_packet_size)
             {
-                printf("Serial Package: ");
-                for (size_t i = 0; i < msg_packet_size; i++)
+                if (this->debug)
                 {
-                    printf("0x%02X ", msg_packet_buffer[i]);
+                    printf("Serial Package: ");
+                    for (size_t i = 0; i < msg_packet_size; i++)
+                    {
+                        printf("0x%02X ", msg_packet_buffer[i]);
+                    }
+                    printf("\n");
                 }
-                printf("\n");
                 msg_packet_size = 0;
                 msg_packet_index = 0;
                 is_parsing = false;
@@ -116,5 +119,8 @@ void SerialConnector::threadLoop()
         };
     }
     close(fd);
-    std::cout << "\tSerialConnector Terminated" << std::endl;
+    if (this->debug)
+    {
+        std::cout << "\tSerialConnector Terminated" << std::endl;
+    }
 }

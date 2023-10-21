@@ -1,6 +1,5 @@
 #ifndef __DATA_HANDLER__
 #define __DATA_HANDLER__
-#include "../osc/OscSender.hpp"
 #ifdef __APPLE__
 #include <json/json.h>
 #else
@@ -34,8 +33,9 @@ typedef std::map<std::string, path_value_t> path_value_map_t;
 class DataHandler
 {
 public:
-    DataHandler()
+    DataHandler(bool debug = false)
     {
+        this->debug = debug;
     }
 
     config_map_t getParams(bool force_load = false);
@@ -43,6 +43,7 @@ public:
     void setCollectValues(bool collect);
     void clearPathValues();
     void setPathValue(std::string path, float value);
+    std::string getPathForController(int unit, int controller);
 
     static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *userp)
     {
@@ -54,6 +55,7 @@ public:
     void printPathValues();
 
 protected:
+    bool debug = false;
     config_map_t param_config;
     path_value_map_t path_values;
     bool collect_values = false;

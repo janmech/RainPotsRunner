@@ -12,7 +12,6 @@ void OscListener::threadLoop()
     bind(fd, (struct sockaddr *)&sin, sizeof(struct sockaddr_in));
     while (this->keep_running)
     {
-        // std::cout << "listener running" << std::endl;
         fd_set readSet;
         FD_ZERO(&readSet);
         FD_SET(fd, &readSet);
@@ -40,18 +39,24 @@ void OscListener::threadLoop()
                     tosc_parseMessage(&osc, buffer, len);
                     // tosc_printMessage(&osc);
                     std::string address(tosc_getAddress(&osc));
-                    std::cout << "ADDRESS::" << address << std::endl;
                     if (address == "/rnbo/inst/0/presets/load")
                     {
-                        std::cout << "\n\nSTART LOADING\n"
-                                  << std::endl;
+                        if (this->debug)
+                        {
+                            std::cout << "\n\nSTART LOADING\n"
+                                      << std::endl;
+                        }
+
                         this->data_handler->clearPathValues();
                         this->data_handler->setCollectValues(true);
                     }
                     if (address == "/rnbo/inst/0/presets/loaded")
                     {
-                        std::cout << "\n\nFINISHED LOADING\n"
-                                  << std::endl;
+                        if (this->debug)
+                        {
+                            std::cout << "\n\nFINISHED LOADING\n"
+                                      << std::endl;
+                        }
                         this->data_handler->setCollectValues(false);
                         this->data_handler->printPathValues();
                     }
@@ -72,6 +77,9 @@ void OscListener::threadLoop()
 
     // close the UDP socket
     close(fd);
-    printf("\tClosing UDP socket\n");
-    std::cout << "\tOscListener Terminated" << std::endl;
+    if (this->debug)
+    {
+        printf("\tClosing UDP socket\n");
+        std::cout << "\tOscListener Terminated" << std::endl;
+    }
 }

@@ -18,8 +18,9 @@ extern "C"
 class OscListener : public ThreadClass
 {
 public:
-    OscListener(DataHandler *data_handler)
+    OscListener(DataHandler *data_handler, bool debug = false)
     {
+        this->debug = debug;
         this->data_handler = data_handler;
     }
 
@@ -28,6 +29,7 @@ public:
     }
 
 protected:
+    bool debug = false;
     DataHandler *data_handler;
     void threadLoop();
 

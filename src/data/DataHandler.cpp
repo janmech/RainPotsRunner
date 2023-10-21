@@ -16,6 +16,19 @@ config_map_t DataHandler::getParams(bool force_load)
     return this->param_config;
 }
 
+std::string DataHandler::getPathForController(int unit, int controller)
+{
+    std::string osc_path = "";
+    if (this->param_config.find(unit) != this->param_config.end())
+    {
+        if (this->param_config[unit].find(controller) != this->param_config[unit].end())
+        {
+            osc_path = this->param_config[unit][controller].path;
+        }
+    }
+    return osc_path;
+}
+
 bool DataHandler::getCollectValues()
 {
     return this->collect_values;

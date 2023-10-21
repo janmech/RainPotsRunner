@@ -15,15 +15,52 @@ void OscSender::threadLoop()
                 printf("0x%02X ", msg->buffer[i]);
             }
             printf("\n");
+            msg_osc_t message_data;
+            this->getOscMessageData(msg, &message_data);
+            if (message_data.path != "")
+            {
+                this->sendMessage(
+                    message_data.path.c_str(),
+                    message_data.format.c_str(),
+                    message_data.val_float);
+            }
         }
     }
     close(this->socket_out);
-    std::cout << "\tOscSender Terminated" << std::endl;
+    if (this->debug)
+    {
+        std::cout << "\tOscSender Terminated" << std::endl;
+    }
 }
 
 void OscSender::addToMessageQueue(queue_entry_message_t *message)
 {
     this->message_queue.push_back(message);
+}
+
+void OscSender::getOscMessageData(queue_entry_message_t *queue_message, msg_osc_t *osc_message_data)
+{
+    osc_message_data->unit = (int)(queue_message->buffer[0] & 0x0F);
+    osc_message_data->controller = (int)queue_message->buffer[1];
+    switch (queue_message->type)
+    {
+    case OSC_MESSAGE_TYPE_CC:
+        osc_message_data->format = "i";
+        // TODO: Normalize properly and condider center config
+        osc_message_data->val_float = (float)((queue_message->buffer[3] << 7) | queue_message->buffer[2]) / 511.;
+        break;
+    // TODO: implement save and load messages
+    // case OSC_MESSAGE_TYPE_PRESET_LOAD:
+    // case OSC_MESSAGE_TYPE_PRESET_SAVE:
+    //     osc_message_data->format = "f";
+    //     break;
+    default:
+        // do nothing
+        break;
+    }
+    osc_message_data->path = this->data_handler->getPathForController(
+        osc_message_data->unit,
+        osc_message_data->controller);
 }
 
 void OscSender::addRNBOListenter()
@@ -46,6 +83,11 @@ void OscSender::addRNBOListenter()
 
 void OscSender::sendMessage(const char *address, const char *format, ...)
 {
+    if (this->debug)
+    {
+        std::string addr_string = std::string(address);
+        std::cout << "SENDING OSC MESSGSE TO " << addr_string << std::endl;
+    }
     char buffer[2048];
     va_list ap;
     va_start(ap, format);

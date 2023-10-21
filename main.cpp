@@ -16,27 +16,31 @@ void handle_sigint()
 	ptr_serial_connector->stop();
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+	bool debug = (argc == 2 && std::string(argv[1]) == "-d");
 	signal(SIGINT, (void (*)(int))handle_sigint);
 
 	pid_t pid = getpid();
 	printf("started: %d\n", pid);
 
-	DataHandler data_handler;
+	DataHandler data_handler(debug);
 	ptr_data_handler = &data_handler;
 	data_handler.getParams(true);
-	data_handler.printParamConfig();
+	if (debug)
+	{
+		data_handler.printParamConfig();
+	}
 
-	OscListener osc_listener(&data_handler);
+	OscListener osc_listener(&data_handler, debug);
 	ptr_osc_listener = &osc_listener;
 	osc_listener.start();
 
-	OscSender osc_sender;
+	OscSender osc_sender(&data_handler, debug);
 	ptr_osc_sender = &osc_sender;
 	osc_sender.start();
 
-	SerialConnector serial_connector(&osc_sender);
+	SerialConnector serial_connector(&osc_sender, debug);
 	ptr_serial_connector = &serial_connector;
 	serial_connector.start();
 
