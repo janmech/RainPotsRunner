@@ -36,7 +36,7 @@ int main()
 	ptr_osc_sender = &osc_sender;
 	osc_sender.start();
 
-	SerialConnector serial_connector;
+	SerialConnector serial_connector(&osc_sender);
 	ptr_serial_connector = &serial_connector;
 	serial_connector.start();
 

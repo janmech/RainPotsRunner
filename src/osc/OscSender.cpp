@@ -1,5 +1,31 @@
 #include "OscSender.hpp"
 
+void OscSender::threadLoop()
+{
+    while (this->keep_running)
+    {
+        // printf("OscSender::run....%d\n", this->inc);
+        while (this->message_queue.size() > 0)
+        {
+            queue_entry_message_t *msg = this->message_queue.front();
+            this->message_queue.pop_front();
+            printf("OSC MESSAGE: ");
+            for (size_t i = 0; i < msg->buffer_size; i++)
+            {
+                printf("0x%02X ", msg->buffer[i]);
+            }
+            printf("\n");
+        }
+    }
+    close(this->socket_out);
+    std::cout << "\tOscSender Terminated" << std::endl;
+}
+
+void OscSender::addToMessageQueue(queue_entry_message_t *message)
+{
+    this->message_queue.push_back(message);
+}
+
 void OscSender::addRNBOListenter()
 {
     if (this->socket_out < 0)
@@ -15,7 +41,7 @@ void OscSender::addRNBOListenter()
         }
     }
 
-    this->sendMessage( "/rnbo/listeners/add", "s", "127.0.0.1:5555");
+    this->sendMessage("/rnbo/listeners/add", "s", "127.0.0.1:5555");
 }
 
 void OscSender::sendMessage(const char *address, const char *format, ...)

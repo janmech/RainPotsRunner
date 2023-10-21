@@ -15,6 +15,7 @@ extern "C"
 #include <fcntl.h>
 #include <termios.h>
 #include "../TheadClass/ThreadClass.h"
+#include "../osc/OscSender.hpp"
 
 #define SERIAL_PORT_PATH "/dev/ttyS0"
 #define SERIAL_IN_BUFFER_LEN 10
@@ -30,8 +31,9 @@ extern "C"
 class SerialConnector : public ThreadClass
 {
 public:
-    SerialConnector()
+    SerialConnector(OscSender * osc_sender)
     {
+        this->osc_sender = osc_sender;
     }
 
     ~SerialConnector()
@@ -39,6 +41,7 @@ public:
     }
 
 protected:
+    OscSender * osc_sender;
     void threadLoop();
 
 private:

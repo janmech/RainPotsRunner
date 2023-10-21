@@ -12,7 +12,22 @@ extern "C"
 #include <string>
 #include <iostream>
 #include <cstdarg>
+#include <deque>
 #include "../TheadClass/ThreadClass.h"
+
+#define OSC_MESSAGE_TYPE_NONE 0
+#define OSC_MESSAGE_TYPE_CC 1
+#define OSC_MESSAGE_TYPE_PRESET_LOAD 2
+#define OSC_MESSAGE_TYPE_PRESET_SAVE 3
+
+typedef struct queue_entry_message_t
+{
+    uint8_t type = OSC_MESSAGE_TYPE_NONE;
+    char *buffer = NULL;
+    int buffer_size = 0;
+
+    /* data */
+} queue_entry_message_t;
 
 class OscSender : public ThreadClass
 {
@@ -24,6 +39,7 @@ public:
     { /* empty */
     }
     void addRNBOListenter();
+    void addToMessageQueue(queue_entry_message_t *message);
 
     void sendMessage(const char *address, const char *format, ...);
 
@@ -36,18 +52,10 @@ protected:
     int inc = 0;
     int socket_out = -1;
     struct sockaddr_in addr_out;
+    std::deque<queue_entry_message_t*> message_queue;
 
     int openOutSocket();
-    void threadLoop()
-    {
-        while (this->keep_running)
-        {
-            // printf("OscSender::run....%d\n", this->inc);
-            sleep(1);
-        }
-        close(this->socket_out);
-        std::cout << "\tOscSender Terminated" << std::endl;
-    }
+    void threadLoop();
 
 private:
     static void *InternalThreadEntryFunc(void *This)
