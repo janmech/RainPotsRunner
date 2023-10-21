@@ -46,7 +46,7 @@ void OscSender::threadLoop()
             }
             // }
         }
-        usleep(10);
+        usleep(100);
     }
 
     close(this->socket_out);

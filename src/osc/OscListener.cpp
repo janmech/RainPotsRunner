@@ -73,7 +73,7 @@ void OscListener::threadLoop()
                 }
             }
         }
-        usleep(10);
+        usleep(100);
     }
 
     // close the UDP socket

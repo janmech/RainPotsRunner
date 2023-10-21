@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
 	while (running)
 	{
-		sleep(1);
+		sleep(5);
 	}
 	std::cout << "\nmain done!" << std::endl;
 
