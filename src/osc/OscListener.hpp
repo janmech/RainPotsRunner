@@ -32,8 +32,7 @@ protected:
     void threadLoop();
 
 private:
-    static void *
-    InternalThreadEntryFunc(void *This)
+    static void *InternalThreadEntryFunc(void *This)
     {
         ((OscListener *)This)->threadLoop();
         return NULL;

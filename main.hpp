@@ -5,14 +5,18 @@ extern "C"
 {
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <termios.h>
 #include "src/test.h"
 
 #ifdef __cplusplus
