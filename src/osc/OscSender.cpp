@@ -4,17 +4,24 @@ void OscSender::threadLoop()
 {
     while (this->keep_running)
     {
-        // printf("OscSender::run....%d\n", this->inc);
-        while (this->message_queue.size() > 0)
+        // while (this->message_queue.size() > 0)
+        // {
+        // std::cout << "before pop" << std::endl;
+        // queue_entry_message_t *msg = this->message_queue.front();
+        // this->message_queue.pop_front();
+        // std::cout << "after pop" << std::endl;
+        if (this->ts_message_queue.size() > 0)
         {
-            queue_entry_message_t *msg = this->message_queue.front();
-            this->message_queue.pop_front();
-            printf("OSC MESSAGE: ");
-            for (size_t i = 0; i < msg->buffer_size; i++)
+            queue_entry_message_t *msg = this->ts_message_queue.pop();
+            if (this->debug)
             {
-                printf("0x%02X ", msg->buffer[i]);
+                printf("OSC MESSAGE: ");
+                for (size_t i = 0; i < msg->buffer_size; i++)
+                {
+                    printf("0x%02X ", msg->buffer[i]);
+                }
+                printf("\n");
             }
-            printf("\n");
             msg_osc_t message_data;
             this->getOscMessageData(msg, &message_data);
             if (message_data.path != "")
@@ -32,9 +39,16 @@ void OscSender::threadLoop()
                     path,
                     format,
                     message_data.val_float);
+                if (this->debug)
+                {
+                    std::cout << "\t->done" << std::endl;
+                }
             }
+            // }
         }
+        usleep(10);
     }
+
     close(this->socket_out);
     if (this->debug)
     {
@@ -44,7 +58,8 @@ void OscSender::threadLoop()
 
 void OscSender::addToMessageQueue(queue_entry_message_t *message)
 {
-    this->message_queue.push_back(message);
+    // this->message_queue.push_back(message);
+    this->ts_message_queue.push(message);
 }
 
 void OscSender::getOscMessageData(queue_entry_message_t *queue_message, msg_osc_t *osc_message_data)
@@ -113,8 +128,9 @@ int OscSender::openOutSocket()
     out_addr.sin_port = htons(1234);
     this->addr_out = out_addr;
     int res = inet_pton(AF_INET, "127.0.0.1", &out_addr.sin_addr);
-    if(this->debug)  {
-         printf("inet_pton %d\n", res);
+    if (this->debug)
+    {
+        printf("inet_pton %d\n", res);
     }
 
     bind(this->socket_out, (struct sockaddr *)&this->addr_out, sizeof(struct sockaddr_in));

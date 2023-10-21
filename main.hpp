@@ -15,9 +15,6 @@ extern "C"
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
-// #include <fcntl.h>
-// #include <termios.h>
-#include "src/test.h"
 
 #ifdef __cplusplus
 }

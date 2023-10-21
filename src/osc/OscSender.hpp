@@ -14,6 +14,7 @@ extern "C"
 #include <deque>
 #include "tinyosc/tinyosc.h"
 #include "../data/DataHandler.hpp"
+#include "../data/TSQueue.hpp"
 #include "../TheadClass/ThreadClass.h"
 
 #define OSC_MESSAGE_TYPE_NONE 0
@@ -62,6 +63,7 @@ protected:
     int socket_out = -1;
     struct sockaddr_in addr_out;
     std::deque<queue_entry_message_t *> message_queue;
+    TSQueue<queue_entry_message_t *> ts_message_queue;
 
     int openOutSocket();
     void threadLoop();
