@@ -13,6 +13,7 @@
 #include <string>
 #include <map>
 #include <iterator>
+#include "../bash_colors.hpp"
 
 typedef struct
 {

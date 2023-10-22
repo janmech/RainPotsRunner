@@ -9,12 +9,12 @@ void OscSender::threadLoop()
             queue_entry_message_t *msg = this->ts_message_queue.pop();
             if (this->debug)
             {
-                printf("OSC MESSAGE: ");
+                std::cout << BACO_GRAY << "<-> Processing OSC message: " << BACO_END;
                 for (size_t i = 0; i < msg->buffer_size; i++)
                 {
                     printf("0x%02X ", msg->buffer[i]);
                 }
-                printf("\n");
+                std::cout << std::endl;
             }
             msg_osc_t message_data;
             this->getOscMessageData(msg, &message_data);
@@ -24,7 +24,7 @@ void OscSender::threadLoop()
                 const char *format = message_data.format.c_str();
                 if (this->debug)
                 {
-                    std::cout << "SENDING OSC MESSGSE TO:" << std::endl
+                    std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << std::endl
                               << "\t" << path << std::endl
                               << "\t" << format << std::endl;
                     if (format[0] == 'f')
@@ -71,7 +71,9 @@ void OscSender::threadLoop()
     close(this->socket_out);
     if (this->debug)
     {
-        std::cout << "\tOscSender Terminated" << std::endl;
+        std::cout << "\tOscSender: UDP socket closed" << std::endl;
+        std::cout << "\tOscSender Terminated" << std::endl
+                  << std::endl;
     }
 }
 
@@ -120,12 +122,9 @@ void OscSender::getOscMessageData(queue_entry_message_t *queue_message, msg_osc_
     }
     break;
     default:
-        // do nothing
+        std::cerr << "OscSender: Invalid Message Type: " << queue_message->type << std::endl;
         break;
     }
-
-    // TODO: implement save and load messages
-    // case OSC_MESSAGE_TYPE_PRESET_LOAD:
 }
 
 void OscSender::addRNBOListenter()
@@ -169,10 +168,6 @@ int OscSender::openOutSocket()
     out_addr.sin_port = htons(1234);
     this->addr_out = out_addr;
     int res = inet_pton(AF_INET, "127.0.0.1", &out_addr.sin_addr);
-    if (this->debug)
-    {
-        printf("inet_pton %d\n", res);
-    }
 
     bind(this->socket_out, (struct sockaddr *)&this->addr_out, sizeof(struct sockaddr_in));
     return this->socket_out;

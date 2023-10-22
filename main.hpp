@@ -23,6 +23,7 @@ extern "C"
 #include "src/osc/OscListener.hpp"
 #include "src/data/DataHandler.hpp"
 #include "src/serial/SerialConnector.hpp"
+#include "src/bash_colors.hpp"
 #endif
 
 

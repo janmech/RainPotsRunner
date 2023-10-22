@@ -9,7 +9,7 @@ SerialConnector *ptr_serial_connector;
 void handle_sigint()
 {
 	pid_t pid = getpid();
-	printf("\nterminating: %d\n", pid);
+	std::cout << std::endl << BACO_YELLO << "Terminating main thread: " << pid << BACO_END << std::endl;
 	running = false;
 	ptr_osc_sender->stop();
 	ptr_osc_listener->stop();
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 	signal(SIGINT, (void (*)(int))handle_sigint);
 
 	pid_t pid = getpid();
-	printf("started: %d\n", pid);
+	std::cout << BACO_YELLO << "Started main thread: " << pid << BACO_END << std::endl;
 
 	DataHandler data_handler(debug);
 	ptr_data_handler = &data_handler;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	{
 		sleep(5);
 	}
-	std::cout << "\nmain done!" << std::endl;
+	std::cout << BACO_YELLO << "Main thread terminated!" << BACO_END << std::endl;
 
 	return 0;
 }

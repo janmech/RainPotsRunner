@@ -82,12 +82,12 @@ void SerialConnector::threadLoop()
             {
                 if (this->debug)
                 {
-                    printf("Serial Package: ");
+                    std::cout << BACO_CYAN << "--> Serial package parsed: " << BACO_END;
                     for (size_t i = 0; i < msg_packet_size; i++)
                     {
                         printf("0x%02X ", msg_packet_buffer[i]);
                     }
-                    printf("\n");
+                    std::cout <<  std::endl;
                 }
                 msg_packet_size = 0;
                 msg_packet_index = 0;
@@ -122,6 +122,7 @@ void SerialConnector::threadLoop()
     close(fd);
     if (this->debug)
     {
-        std::cout << "\tSerialConnector Terminated" << std::endl;
+        std::cout << "\tSerialConnector: Serial connection closed." << std::endl;
+        std::cout << "\tSerialConnector Terminated" << std::endl << std::endl;
     }
 }

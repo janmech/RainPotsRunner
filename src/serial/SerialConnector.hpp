@@ -16,6 +16,7 @@ extern "C"
 #include <termios.h>
 #include "../TheadClass/ThreadClass.h"
 #include "../osc/OscSender.hpp"
+#include "../bash_colors.hpp"
 
 #define SERIAL_PORT_PATH "/dev/ttyS0"
 #define SERIAL_IN_BUFFER_LEN 100

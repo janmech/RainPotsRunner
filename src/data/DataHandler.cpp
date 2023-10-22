@@ -65,7 +65,7 @@ float DataHandler::makeValueFLoat(int unit, int controler, int raw_value)
             }
         }
     }
-    
+
     return (float)((int)(normalized_value * 1000.)) / 1000.f;
 }
 
@@ -103,12 +103,14 @@ void DataHandler::setPathValue(std::string path, float value)
 
 void DataHandler::printPathValues()
 {
+    std::cout << BACO_GRAY << "<-> Param values by path: " << std::endl;
     path_value_map_t::iterator iterator = this->path_values.begin();
     while (iterator != this->path_values.end())
     {
-        std::cout << iterator->first << "\n  loaded: " << iterator->second.loaded << "\n  value: " << iterator->second.value << std::endl;
+        std::cout << "\t" << iterator->first << "\n  loaded: " << iterator->second.loaded << "\n  value: " << iterator->second.value << std::endl;
         iterator++;
     }
+    std::cout << BACO_END;
 }
 
 void DataHandler::printParamConfig(bool force_load)
@@ -119,7 +121,7 @@ void DataHandler::printParamConfig(bool force_load)
     }
     config_map_t config_map = this->param_config;
 
-    std::cout << "\n\nLOADED PAINPOTS CONFIG:" << std::endl;
+    std::cout << BACO_GRAY "\n\nL<-> Loaded RainPots Config:" << std::endl;
 
     config_map_t::iterator unit_iterator = config_map.begin();
     while (unit_iterator != config_map.end())
@@ -134,13 +136,14 @@ void DataHandler::printParamConfig(bool force_load)
             std::cout << "\t ctl: " << ctl << std::endl;
             std::cout << "\t   path: " << settings.path << std::endl;
             std::cout << "\t   steps: " << settings.steps << std::endl;
-            std::cout << "\t   center: " << settings.center << "\n"
+            std::cout << "\t   center: " << settings.center << std::endl
                       << std::endl;
 
             ctl_iterator++;
         }
         unit_iterator++;
     }
+    std::cout << BACO_END;
 }
 
 /* protected methods*/

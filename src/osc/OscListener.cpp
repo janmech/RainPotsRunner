@@ -37,13 +37,16 @@ void OscListener::threadLoop()
                 {
                     tosc_message osc;
                     tosc_parseMessage(&osc, buffer, len);
-                    // tosc_printMessage(&osc);
                     std::string address(tosc_getAddress(&osc));
+                    if (this->debug)
+                    {
+                        std::cout << BACO_CYAN << "--> Incoming OSC message from: " << BACO_GRAY << address << BACO_END << std::endl;
+                    }
                     if (address == "/rnbo/inst/0/presets/load")
                     {
                         if (this->debug)
                         {
-                            std::cout << "\n\nSTART LOADING\n"
+                            std::cout << BACO_GRAY "<-> Start loading params" << BACO_END << std::endl
                                       << std::endl;
                         }
 
@@ -54,11 +57,14 @@ void OscListener::threadLoop()
                     {
                         if (this->debug)
                         {
-                            std::cout << "\n\nFINISHED LOADING\n"
-                                      << std::endl;
+                            std::cout << std::endl
+                                      << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
                         }
                         this->data_handler->setCollectValues(false);
-                        this->data_handler->printPathValues();
+                        if (this->debug)
+                        {
+                            this->data_handler->printPathValues();
+                        }
                     }
 
                     std::string suffix = "normalized";
@@ -79,7 +85,8 @@ void OscListener::threadLoop()
     close(fd);
     if (this->debug)
     {
-        printf("\tClosing UDP socket\n");
-        std::cout << "\tOscListener Terminated" << std::endl;
+        std::cout << "\tOscListener: UDP socket closed" << std::endl;
+        std::cout << "\tOscListener Terminated" << std::endl
+                  << std::endl;
     }
 }

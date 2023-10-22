@@ -14,6 +14,7 @@ extern "C"
 #include <iostream>
 #include "../TheadClass/ThreadClass.h"
 #include "../data/DataHandler.hpp"
+#include "../bash_colors.hpp"
 
 class OscListener : public ThreadClass
 {

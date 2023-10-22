@@ -18,6 +18,7 @@ extern "C"
 #include "../data/DataHandler.hpp"
 #include "../data/TSQueue.hpp"
 #include "../TheadClass/ThreadClass.h"
+#include "../bash_colors.hpp"
 
 #define OSC_MESSAGE_TYPE_NONE 0
 #define OSC_MESSAGE_TYPE_CC 1
