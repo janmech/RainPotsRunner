@@ -42,6 +42,19 @@ void OscListener::threadLoop()
                     {
                         std::cout << BACO_CYAN << "--> Incoming OSC message from: " << BACO_GRAY << address << BACO_END << std::endl;
                     }
+                    if (address == "/rnbo/inst/control/load")
+                    {
+                        this->patcher_load_received = true;
+                    }
+                    if (address == "/rnbo/inst/0/name" && this->patcher_load_received)
+                    {
+                        this->data_handler->getParams(true);
+                        this->patcher_load_received = false;
+                        if (this->debug)
+                        {
+                            this->data_handler->printParamConfig();
+                        }
+                    }
                     if (address == "/rnbo/inst/0/presets/load")
                     {
                         if (this->debug)
@@ -58,7 +71,8 @@ void OscListener::threadLoop()
                         if (this->debug)
                         {
                             std::cout << std::endl
-                                      << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
+                                      << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl
+                                      << std::endl;
                         }
                         this->data_handler->setCollectValues(false);
                         if (this->debug)

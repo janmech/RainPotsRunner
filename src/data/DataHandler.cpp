@@ -121,7 +121,7 @@ void DataHandler::printParamConfig(bool force_load)
     }
     config_map_t config_map = this->param_config;
 
-    std::cout << BACO_GRAY "\n\nL<-> Loaded RainPots Config:" << std::endl;
+    std::cout << BACO_GRAY "\n\n<-> Loaded RainPots Config:" << std::endl;
 
     config_map_t::iterator unit_iterator = config_map.begin();
     while (unit_iterator != config_map.end())

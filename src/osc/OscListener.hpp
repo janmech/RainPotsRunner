@@ -31,6 +31,7 @@ public:
 
 protected:
     bool debug = false;
+    bool patcher_load_received = false;
     DataHandler *data_handler;
     void threadLoop();
 
