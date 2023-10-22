@@ -78,8 +78,9 @@ void DataHandler::clearPathValues()
     while (iterator != this->path_values.end()) {
         std::string  path              = iterator->first;
         path_value_t path_value        = iterator->second;
-        this->path_values[path].loaded = false;
         this->path_values[path].value  = 0.;
+        this->path_values[path].loaded = false;
+        this->path_values[path].locked = false;
         iterator++;
     }
 }
@@ -108,13 +109,19 @@ Json::Value DataHandler::parseStringToJSON(std::string raw_json_string)
 
 void DataHandler::printPathValues()
 {
-    std::cout << BACO_GRAY << "<-> Param values by path: " << std::endl;
-    path_value_map_t::iterator iterator = this->path_values.begin();
-    while (iterator != this->path_values.end()) {
-        std::cout << "\t" << iterator->first << "\n  loaded: " << iterator->second.loaded << "\n  value: " << iterator->second.value << std::endl;
-        iterator++;
+    path_value_map_t           pv_map      = this->path_values;
+    path_value_map_t::iterator pv_iterator = pv_map.begin();
+
+    std::cout << std::endl << BACO_GRAY << "<-> Param Values by Path:" << BACO_END << std::endl;
+    std::cout << BACO_GRAY << std::endl << this->rightPad("Path", 50) << this->leftPad("Value", 8) << this->leftPad("Loaded", 8) << this->leftPad("Locked", 8) << BACO_END << std::endl;
+    while (pv_iterator != pv_map.end()) {
+        std::string  path  = pv_iterator->first;
+        path_value_t value = pv_iterator->second;
+
+        std::cout << BACO_GRAY << this->rightPad(path, 50) << "" << std::setw(8) << value.value << "" << std::setw(8) << value.loaded << "" << std::setw(8) << value.locked << BACO_END << std::endl;
+        pv_iterator++;
     }
-    std::cout << BACO_END;
+    std::cout << std::endl;
 }
 
 void DataHandler::printParamConfig(bool force_load)
@@ -158,6 +165,8 @@ void DataHandler::printParamConfig(bool force_load)
         preset_iterator++;
     }
     std::cout << BACO_END;
+
+    this->printPathValues();
 }
 
 /* protected methods*/
@@ -242,4 +251,18 @@ float DataHandler::clipValue(float x, float min, float max)
     x = (x > max) ? max : x;
     x = (x < min) ? min : x;
     return x;
+}
+
+std::string DataHandler::rightPad(std::string const& str, int padding)
+{
+    std::ostringstream ss;
+    ss << std::left << std::setfill(' ') << std::setw(padding) << str;
+    return ss.str();
+}
+
+std::string DataHandler::leftPad(std::string const& str, int padding)
+{
+    std::ostringstream ss;
+    ss << std::right << std::setfill(' ') << std::setw(padding) << str;
+    return ss.str();
 }

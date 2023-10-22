@@ -25,6 +25,7 @@ typedef struct {
 typedef struct {
     bool  loaded = false;
     float value  = 0.;
+    bool  locked = false;
 } path_value_t;
 
 typedef std::map<int, std::map<int, ctl_settings_t>> config_map_t;
@@ -65,5 +66,7 @@ protected:
     void               loadConfig();
     float              scaleValue(float x, float in_min = 0., float in_max = 1., float out_min = 0., float out_max = 0.);
     float              clipValue(float x, float min = 0., float max = 1.);
+    std::string        rightPad(std::string const& str, int padding);
+    std::string        leftPad(std::string const& str, int padding);
 };
 #endif
