@@ -8,21 +8,21 @@
 #include "../bash_colors.hpp"
 #include <curl/curl.h>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 
-typedef struct
-{
+typedef struct {
     bool        center = false;
     int         steps  = -1;
     std::string path   = "";
 } ctl_settings_t;
 
-typedef struct
-{
+typedef struct {
     bool  loaded = false;
     float value  = 0.;
 } path_value_t;
@@ -33,10 +33,7 @@ typedef std::map<std::string, int>                   preset_index_map_t;
 
 class DataHandler {
 public:
-    DataHandler(bool debug = false)
-    {
-        this->debug = debug;
-    }
+    DataHandler(bool debug = false) { this->debug = debug; }
 
     config_map_t       getParams(bool force_load = false);
     preset_index_map_t getPresets(bool force_load = false);

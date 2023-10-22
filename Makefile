@@ -28,7 +28,7 @@ all: clean $(TARGET)
 
 clean:
 	rm -rf $(BUILD_PATH)*.o 
-	rm -rf $(TARGET)
+	rm -rf $(BUILD_PATH)$(TARGET)
 
 $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo "\n***************************\n"

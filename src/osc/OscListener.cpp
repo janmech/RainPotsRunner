@@ -45,10 +45,7 @@ void OscListener::threadLoop()
                         }
                         try {
                             Json::Value reponse = this->data_handler->parseStringToJSON(response);
-                            if (
-                                reponse["result"]["code"].asInt() == 2
-                                && std::string(reponse["result"]["message"].asString()) == "loaded"
-                                && reponse["result"]["progress"].asInt() == 100
+                            if (reponse["result"]["code"].asInt() == 2 && std::string(reponse["result"]["message"].asString()) == "loaded" && reponse["result"]["progress"].asInt() == 100
 
                             ) {
                                 this->data_handler->getParams(true);
@@ -60,16 +57,14 @@ void OscListener::threadLoop()
                             std::cerr << "Error parsing JSON String";
                         }
                     }
+
                     if (address == "/rnbo/inst/0/messages/out/meter") {
                         float meter_index = tosc_getNextFloat(&osc);
                         float meter_value = tosc_getNextFloat(&osc) * 255.;
 
-                        char msg_buffer[4] = {
-                            0xF0, // Start Condition - by convetion RainPotMeterModule is always at index 0
+                        char msg_buffer[4] = { 0xF0, // Start Condition - by convetion RainPotMeterModule is always at index 0
                             0xE6, // Remote Message: Set Meter
-                            (char)meter_index,
-                            (char)meter_value
-                        };
+                            (char)meter_index, (char)meter_value };
 
                         serial_queue_entry_t serial_queue_entry;
                         serial_queue_entry.buffer      = msg_buffer;
@@ -82,6 +77,9 @@ void OscListener::threadLoop()
                     }
 
                     if (address == "/rnbo/inst/0/name" && this->patcher_load_received) {
+                        /* When loading immediatle the presets don show up. Give  RNBO time to finish writing the config file*/
+                        // TODO: See if there is a more solid solution. This might fail patches with a lot of params. Maybe ask Alex Normann.
+                        usleep(200 * 1000);
                         this->data_handler->getParams(true);
                         this->patcher_load_received = false;
                         if (this->debug) {
@@ -91,8 +89,7 @@ void OscListener::threadLoop()
 
                     if (address == "/rnbo/inst/0/presets/load") {
                         if (this->debug) {
-                            std::cout << BACO_GRAY "<-> Start loading params" << BACO_END << std::endl
-                                      << std::endl;
+                            std::cout << BACO_GRAY "<-> Start loading params" << BACO_END << std::endl << std::endl;
                         }
 
                         this->data_handler->clearPathValues();
@@ -101,9 +98,7 @@ void OscListener::threadLoop()
 
                     if (address == "/rnbo/inst/0/presets/loaded") {
                         if (this->debug) {
-                            std::cout << std::endl
-                                      << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl
-                                      << std::endl;
+                            std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
                         }
                         this->data_handler->setCollectValues(false);
                         if (this->debug) {
@@ -113,9 +108,7 @@ void OscListener::threadLoop()
 
                     std::string suffix = "normalized";
 
-                    if (
-                        this->data_handler->getCollectValues()
-                        && std::mismatch(suffix.rbegin(), suffix.rend(), address.rbegin()).first == suffix.rend()) {
+                    if (this->data_handler->getCollectValues() && std::mismatch(suffix.rbegin(), suffix.rend(), address.rbegin()).first == suffix.rend()) {
                         float value = tosc_getNextFloat(&osc);
                         this->data_handler->setPathValue(address, value);
                     };
@@ -129,7 +122,7 @@ void OscListener::threadLoop()
     close(fd);
     if (this->debug) {
         std::cout << "\tOscListener: UDP socket closed" << std::endl;
-        std::cout << "\tOscListener Terminated" << std::endl
-                  << std::endl;
+        std::cout << "\tOscListener Terminated" << std::endl << std::endl;
     }
 }
+

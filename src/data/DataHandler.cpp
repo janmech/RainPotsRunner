@@ -58,11 +58,9 @@ float DataHandler::makeValueFLoat(int unit, int controler, int raw_value)
             if (std::abs(normalized_value - 0.5) <= center_margin) {
                 normalized_value = 0.5;
             } else if (normalized_value > 0.5 + center_margin) {
-                normalized_value = this->scaleValue(normalized_value,
-                    0.5 + center_margin, 1., 0.5, 1.);
+                normalized_value = this->scaleValue(normalized_value, 0.5 + center_margin, 1., 0.5, 1.);
             } else if (normalized_value < 0.5 - center_margin) {
-                normalized_value = this->scaleValue(normalized_value, 0.,
-                    0.5 - center_margin, 0., 0.5);
+                normalized_value = this->scaleValue(normalized_value, 0., 0.5 - center_margin, 0., 0.5);
             }
         }
     }
@@ -72,10 +70,7 @@ float DataHandler::makeValueFLoat(int unit, int controler, int raw_value)
 
 bool DataHandler::getCollectValues() { return this->collect_values; }
 
-void DataHandler::setCollectValues(bool collect)
-{
-    this->collect_values = collect;
-}
+void DataHandler::setCollectValues(bool collect) { this->collect_values = collect; }
 
 void DataHandler::clearPathValues()
 {
@@ -105,8 +100,7 @@ Json::Value DataHandler::parseStringToJSON(std::string raw_json_string)
 
     Json::CharReaderBuilder                 builder;
     const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
-    if (!reader->parse(raw_json_string.c_str(),
-            raw_json_string.c_str() + raw_json_length, &root, &err)) {
+    if (!reader->parse(raw_json_string.c_str(), raw_json_string.c_str() + raw_json_length, &root, &err)) {
         throw "JSON parsing error.";
     }
     return root;
@@ -117,9 +111,7 @@ void DataHandler::printPathValues()
     std::cout << BACO_GRAY << "<-> Param values by path: " << std::endl;
     path_value_map_t::iterator iterator = this->path_values.begin();
     while (iterator != this->path_values.end()) {
-        std::cout << "\t" << iterator->first
-                  << "\n  loaded: " << iterator->second.loaded
-                  << "\n  value: " << iterator->second.value << std::endl;
+        std::cout << "\t" << iterator->first << "\n  loaded: " << iterator->second.loaded << "\n  value: " << iterator->second.value << std::endl;
         iterator++;
     }
     std::cout << BACO_END;
@@ -145,8 +137,7 @@ void DataHandler::printParamConfig(bool force_load)
             std::cout << "\t ctl: " << ctl << std::endl;
             std::cout << "\t   path: " << settings.path << std::endl;
             std::cout << "\t   steps: " << settings.steps << std::endl;
-            std::cout << "\t   center: " << settings.center << std::endl
-                      << std::endl;
+            std::cout << "\t   center: " << settings.center << std::endl << std::endl;
 
             ctl_iterator++;
         }
@@ -156,11 +147,14 @@ void DataHandler::printParamConfig(bool force_load)
 
     preset_index_map_t presets = this->presets;
 
-    std::cout << BACO_GRAY "\n\n<-> Patcher Prests:" << std::endl;
+    std::cout << BACO_GRAY "\n\n<-> Patcher Prests:" << BACO_END << std::endl;
     preset_index_map_t::iterator preset_iterator = presets.begin();
+
+    std::cout << BACO_GRAY << "" << std::setw(10) << "Name"
+              << "" << std::setw(7) << "Index" << BACO_END << std::endl;
+
     while (preset_iterator != presets.end()) {
-        std::cout << "\tName: " << preset_iterator->first
-                  << " Index: " << preset_iterator->second << std::endl;
+        std::cout << BACO_GRAY << "" << std::setw(10) << preset_iterator->first << "" << std::setw(7) << preset_iterator->second << BACO_END << std::endl;
         preset_iterator++;
     }
     std::cout << BACO_END;
@@ -169,7 +163,6 @@ void DataHandler::printParamConfig(bool force_load)
 /* protected methods*/
 void DataHandler::loadConfig()
 {
-
     std::map<int, std::map<int, ctl_settings_t>> config_map;
     std::string                                  rawJson;
     JSONCPP_STRING                               err;
@@ -189,8 +182,7 @@ void DataHandler::loadConfig()
         Json::Value root = this->parseStringToJSON(rawJson);
 
         // Parsing Parameters into map
-        const Json::Value params = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]
-                                       ["CONTENTS"]["params"]["CONTENTS"];
+        const Json::Value params = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["params"]["CONTENTS"];
 
         std::vector<std::string> param_names = params.getMemberNames();
 
@@ -212,30 +204,25 @@ void DataHandler::loadConfig()
                     std::string value_path   = normalized_path.asString();
 
                     if (config_map.find(value_unit) == config_map.end()) {
-                        config_map.insert(
-                            std::make_pair(value_unit, std::map<int, ctl_settings_t>()));
+                        config_map.insert(std::make_pair(value_unit, std::map<int, ctl_settings_t>()));
                     }
                     ctl_settings_t ctl_settings;
                     ctl_settings.center = value_center;
                     ctl_settings.steps  = value_steps;
                     ctl_settings.path   = value_path;
-                    config_map[value_unit].insert(
-                        std::make_pair(value_ctl, ctl_settings));
+                    config_map[value_unit].insert(std::make_pair(value_ctl, ctl_settings));
                     path_value_t path_value_entry;
-                    this->path_values.insert(
-                        std::make_pair(value_path, path_value_entry));
+                    this->path_values.insert(std::make_pair(value_path, path_value_entry));
                 }
             }
         }
         this->param_config = config_map;
 
         // Parsing prests into map
-        const Json::Value presets = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]
-                                        ["CONTENTS"]["presets"]["CONTENTS"]["entries"]["VALUE"];
+        const Json::Value  presets = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["presets"]["CONTENTS"]["entries"]["VALUE"];
         preset_index_map_t preset_index_map;
         for (int preset_index = 0; preset_index < presets.size(); preset_index++) {
-            preset_index_map.insert(
-                std::make_pair(presets[preset_index].asString(), preset_index));
+            preset_index_map.insert(std::make_pair(presets[preset_index].asString(), preset_index));
         }
         this->presets = preset_index_map;
     } catch (...) {
@@ -244,8 +231,7 @@ void DataHandler::loadConfig()
     }
 }
 
-float DataHandler::scaleValue(float x, float in_min, float in_max,
-    float out_min, float out_max)
+float DataHandler::scaleValue(float x, float in_min, float in_max, float out_min, float out_max)
 {
     float mapped = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     return this->clipValue(mapped, out_min, out_max);
