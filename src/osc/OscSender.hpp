@@ -65,6 +65,7 @@ protected:
     std::deque<queue_entry_message_t *> message_queue;
     TSQueue<queue_entry_message_t *> ts_message_queue;
 
+    float makeValueFLoat(int unit, int controler, int raw_value);
     int openOutSocket();
     void threadLoop();
     void getOscMessageData(queue_entry_message_t *queue_message, msg_osc_t *osc_message_data);

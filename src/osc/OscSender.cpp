@@ -4,12 +4,6 @@ void OscSender::threadLoop()
 {
     while (this->keep_running)
     {
-        // while (this->message_queue.size() > 0)
-        // {
-        // std::cout << "before pop" << std::endl;
-        // queue_entry_message_t *msg = this->message_queue.front();
-        // this->message_queue.pop_front();
-        // std::cout << "after pop" << std::endl;
         if (this->ts_message_queue.size() > 0)
         {
             queue_entry_message_t *msg = this->ts_message_queue.pop();
@@ -39,12 +33,7 @@ void OscSender::threadLoop()
                     path,
                     format,
                     message_data.val_float);
-                if (this->debug)
-                {
-                    std::cout << "\t->done" << std::endl;
-                }
             }
-            // }
         }
         usleep(100);
     }
@@ -58,7 +47,6 @@ void OscSender::threadLoop()
 
 void OscSender::addToMessageQueue(queue_entry_message_t *message)
 {
-    // this->message_queue.push_back(message);
     this->ts_message_queue.push(message);
 }
 
@@ -69,10 +57,15 @@ void OscSender::getOscMessageData(queue_entry_message_t *queue_message, msg_osc_
     switch (queue_message->type)
     {
     case OSC_MESSAGE_TYPE_CC:
+    {
+        int raw_int_value = (int)((queue_message->buffer[3] << 7) | queue_message->buffer[2]);
+        osc_message_data->val_float = this->data_handler->makeValueFLoat(
+            osc_message_data->unit,
+            osc_message_data->controller,
+            raw_int_value);
         osc_message_data->format = "f";
-        // TODO: Normalize properly and condider center config
-        osc_message_data->val_float = (float)((queue_message->buffer[3] << 7) | queue_message->buffer[2]) / 511.;
-        break;
+    }
+    break;
     // TODO: implement save and load messages
     // case OSC_MESSAGE_TYPE_PRESET_LOAD:
     // case OSC_MESSAGE_TYPE_PRESET_SAVE:

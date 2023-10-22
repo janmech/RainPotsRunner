@@ -43,6 +43,9 @@ public:
     void setCollectValues(bool collect);
     void clearPathValues();
     void setPathValue(std::string path, float value);
+    bool contollerIsAssigned(int rainpot_uni, int controller);
+    bool controllerIsCentered(int unit, int controller);
+    float makeValueFLoat(int unit, int controler, int raw_value);
     std::string getPathForController(int unit, int controller);
 
     static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -60,5 +63,7 @@ protected:
     path_value_map_t path_values;
     bool collect_values = false;
     void loadConfig();
+    float scaleValue(float x, float in_min = 0., float in_max = 1., float out_min = 0., float out_max = 0.);
+    float clipValue(float x, float min = 0., float max = 1.);
 };
 #endif

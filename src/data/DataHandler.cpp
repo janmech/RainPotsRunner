@@ -16,17 +16,56 @@ config_map_t DataHandler::getParams(bool force_load)
     return this->param_config;
 }
 
+bool DataHandler::contollerIsAssigned(int unit, int controller)
+{
+    return (this->param_config.find(unit) != this->param_config.end()) && (this->param_config[unit].find(controller) != this->param_config[unit].end());
+}
+
+bool DataHandler::controllerIsCentered(int unit, int controller)
+{
+    bool is_centered = false;
+    if (this->contollerIsAssigned(unit, controller))
+    {
+        is_centered = this->param_config[unit][controller].center;
+    }
+    return is_centered;
+}
+
 std::string DataHandler::getPathForController(int unit, int controller)
 {
     std::string osc_path = "";
-    if (this->param_config.find(unit) != this->param_config.end())
+    if (this->contollerIsAssigned(unit, controller))
     {
-        if (this->param_config[unit].find(controller) != this->param_config[unit].end())
+        osc_path = this->param_config[unit][controller].path;
+    }
+
+    return osc_path;
+}
+
+float DataHandler::makeValueFLoat(int unit, int controler, int raw_value)
+{
+    float normalized_value = -1;
+    float center_margin = 0.05;
+    if (this->contollerIsAssigned(unit, controler))
+    {
+        normalized_value = (float)(raw_value) / 511.f;
+        if (this->controllerIsCentered(unit, controler))
         {
-            osc_path = this->param_config[unit][controller].path;
+            if (std::abs(normalized_value - 0.5) <= center_margin)
+            {
+                normalized_value = 0.5;
+            }
+            else if (normalized_value > 0.5 + center_margin)
+            {
+                normalized_value = this->scaleValue(normalized_value, 0.5 + center_margin, 1., 0.5, 1.);
+            }
+            else if (normalized_value < 0.5 - center_margin)
+            {
+                normalized_value = this->scaleValue(normalized_value, 0., 0.5 - center_margin, 0., 0.5);
+            }
         }
     }
-    return osc_path;
+    return normalized_value;
 }
 
 bool DataHandler::getCollectValues()
@@ -171,4 +210,17 @@ void DataHandler::loadConfig()
         }
     }
     this->param_config = config_map;
+}
+
+float DataHandler::scaleValue(float x, float in_min, float in_max, float out_min, float out_max)
+{
+    float mapped = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    return this->clipValue(mapped, out_min, out_max);
+}
+
+float DataHandler::clipValue(float x, float min, float max)
+{
+    x = (x > max) ? max : x;
+    x = (x < min) ? min : x;
+    return x;
 }
