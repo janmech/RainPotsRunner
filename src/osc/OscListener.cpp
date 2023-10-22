@@ -30,7 +30,11 @@ void OscListener::threadLoop()
                     tosc_message osc;
                     while (tosc_getNextMessage(&bundle, &osc))
                     {
-                        tosc_printMessage(&osc);
+                        if (this->debug)
+                        {
+                            tosc_printMessage(&osc);
+                        }
+                        std::cerr << "OSC Bundels are currently not supported" << std::endl;
                     }
                 }
                 else
@@ -40,12 +44,31 @@ void OscListener::threadLoop()
                     std::string address(tosc_getAddress(&osc));
                     if (this->debug)
                     {
-                        std::cout << BACO_CYAN << "--> Incoming OSC message from: " << BACO_GRAY << address << BACO_END << std::endl;
+                        std::string format = tosc_getFormat(&osc);
+                        std::cout << BACO_CYAN << "--> Incoming OSC message from: " << BACO_GRAY << address << " [" << format << "]" << BACO_END << std::endl;
                     }
+                    if (address == "/rnbo/inst/0/messages/out/meter")
+                    {
+                        float meter_index = tosc_getNextFloat(&osc);
+                        float meter_value = tosc_getNextFloat(&osc) * 255.;
+
+                        char msg_buffer[4] = {
+                            0xF0, // Start Condition - by convetion RainPotMeterModule is always at index 0
+                            0xE6, // Remote Message: Set Meter
+                            (char)meter_index,
+                            (char)meter_value};
+
+                        serial_queue_entry_t serial_queue_entry;
+                        serial_queue_entry.buffer = msg_buffer;
+                        serial_queue_entry.buffer_size = 4;
+                        this->serial_connector->addToMessageQueue(&serial_queue_entry);
+                    }
+
                     if (address == "/rnbo/inst/control/load")
                     {
                         this->patcher_load_received = true;
                     }
+
                     if (address == "/rnbo/inst/0/name" && this->patcher_load_received)
                     {
                         this->data_handler->getParams(true);
@@ -55,6 +78,7 @@ void OscListener::threadLoop()
                             this->data_handler->printParamConfig();
                         }
                     }
+
                     if (address == "/rnbo/inst/0/presets/load")
                     {
                         if (this->debug)
@@ -66,6 +90,7 @@ void OscListener::threadLoop()
                         this->data_handler->clearPathValues();
                         this->data_handler->setCollectValues(true);
                     }
+
                     if (address == "/rnbo/inst/0/presets/loaded")
                     {
                         if (this->debug)

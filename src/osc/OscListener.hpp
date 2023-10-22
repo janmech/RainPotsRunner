@@ -14,15 +14,17 @@ extern "C"
 #include <iostream>
 #include "../TheadClass/ThreadClass.h"
 #include "../data/DataHandler.hpp"
+#include "../serial/SerialConnector.hpp"
 #include "../bash_colors.hpp"
 
 class OscListener : public ThreadClass
 {
 public:
-    OscListener(DataHandler *data_handler, bool debug = false)
+    OscListener(DataHandler *data_handler, SerialConnector *serial_connector, bool debug = false)
     {
         this->debug = debug;
         this->data_handler = data_handler;
+        this->serial_connector = serial_connector;
     }
 
     ~OscListener()
@@ -33,6 +35,7 @@ protected:
     bool debug = false;
     bool patcher_load_received = false;
     DataHandler *data_handler;
+    SerialConnector *serial_connector;
     void threadLoop();
 
 private:

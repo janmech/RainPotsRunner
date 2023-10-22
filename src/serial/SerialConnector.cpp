@@ -36,6 +36,7 @@ void SerialConnector::threadLoop()
 
     while (this->keep_running)
     {
+        // Read incomng data
         if (int received = read(fd, serial_in_buffer, 1) > 0)
         {
             if (!is_parsing)
@@ -87,7 +88,7 @@ void SerialConnector::threadLoop()
                     {
                         printf("0x%02X ", msg_packet_buffer[i]);
                     }
-                    std::cout <<  std::endl;
+                    std::cout << std::endl;
                 }
                 msg_packet_size = 0;
                 msg_packet_index = 0;
@@ -117,12 +118,36 @@ void SerialConnector::threadLoop()
                 msg_type = OSC_MESSAGE_TYPE_NONE;
             }
         };
+
+        // Send data from message queue
+        if (this->ts_message_queue.size() > 0)
+        {
+            serial_queue_entry_t *entry = this->ts_message_queue.pop();
+            int bytes_written = write(fd, entry->buffer, entry->buffer_size);
+            if (this->debug)
+            {
+                std::cout << BACO_MAGENTA << "<-- Sending serial packet: " << BACO_END;
+                std::cout << BACO_GRAY;
+                for (size_t i = 0; i < entry->buffer_size; i++)
+                {
+                    printf("0x%02X ", entry->buffer[i]);
+                }
+                std::cout << BACO_END << std::endl;
+            }
+        }
+
         usleep(THREAD_LOOP_SLEEP_US);
     }
     close(fd);
     if (this->debug)
     {
         std::cout << "\tSerialConnector: Serial connection closed." << std::endl;
-        std::cout << "\tSerialConnector Terminated" << std::endl << std::endl;
+        std::cout << "\tSerialConnector Terminated" << std::endl
+                  << std::endl;
     }
+}
+
+void SerialConnector::addToMessageQueue(serial_queue_entry_t *message)
+{
+    this->ts_message_queue.push(message);
 }

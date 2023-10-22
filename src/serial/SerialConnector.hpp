@@ -17,6 +17,7 @@ extern "C"
 #include "../TheadClass/ThreadClass.h"
 #include "../osc/OscSender.hpp"
 #include "../bash_colors.hpp"
+#include "../data/TSQueue.hpp"
 
 #define SERIAL_PORT_PATH "/dev/ttyS0"
 #define SERIAL_IN_BUFFER_LEN 100
@@ -28,6 +29,13 @@ extern "C"
 #define MSG_PGM_PACKET_SIZE 2
 #define MSG_SAVE 0xF4
 #define MSG_SAVE_PACKET_SIZE 2
+
+typedef struct serial_queue_entry_t
+{
+    char *buffer = NULL;
+    int buffer_size = 0;
+
+} serial_queue_entry_t;
 
 class SerialConnector : public ThreadClass
 {
@@ -41,8 +49,10 @@ public:
     ~SerialConnector()
     { /* empty */
     }
+    void addToMessageQueue(serial_queue_entry_t *message);
 
 protected:
+    TSQueue<serial_queue_entry_t *> ts_message_queue;
     bool debug = false;
     OscSender *osc_sender;
     void threadLoop();
