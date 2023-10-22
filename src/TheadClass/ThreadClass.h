@@ -24,6 +24,8 @@ extern "C"
 #include <string>
 #include <iostream>
 
+#define THREAD_LOOP_SLEEP_US 1000
+
 class ThreadClass
 {
 public:

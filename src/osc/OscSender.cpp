@@ -26,16 +26,46 @@ void OscSender::threadLoop()
                 {
                     std::cout << "SENDING OSC MESSGSE TO:" << std::endl
                               << "\t" << path << std::endl
-                              << "\t" << format << std::endl
-                              << "\t" << message_data.val_float << std::endl;
+                              << "\t" << format << std::endl;
+                    if (format[0] == 'f')
+                    {
+                        std::cout << "\t" << message_data.val_float << std::endl;
+                    }
+                    else if (format[0] == 's')
+                    {
+                        std::cout << "\t" << message_data.val_string << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << "\t usupported format:" << format << std::endl;
+                    }
                 }
-                this->sendMessage(
-                    path,
-                    format,
-                    message_data.val_float);
+                switch (msg->type)
+                {
+                case OSC_MESSAGE_TYPE_CC:
+                    this->sendMessage(
+                        path,
+                        format,
+                        message_data.val_float);
+                    break;
+                case OSC_MESSAGE_TYPE_PRESET_LOAD:
+                case OSC_MESSAGE_TYPE_PRESET_SAVE:
+                {
+                    const char *string_val = message_data.val_string.c_str();
+                    this->sendMessage(
+                        path,
+                        format,
+                        string_val);
+                }
+                break;
+
+                default:
+                    std::cerr << "OscSender: Invalid mesage type" << std::endl;
+                    break;
+                }
             }
         }
-        usleep(100);
+        usleep(THREAD_LOOP_SLEEP_US);
     }
 
     close(this->socket_out);
@@ -64,20 +94,38 @@ void OscSender::getOscMessageData(queue_entry_message_t *queue_message, msg_osc_
             osc_message_data->controller,
             raw_int_value);
         osc_message_data->format = "f";
+        osc_message_data->path = this->data_handler->getPathForController(
+            osc_message_data->unit,
+            osc_message_data->controller);
     }
     break;
-    // TODO: implement save and load messages
-    // case OSC_MESSAGE_TYPE_PRESET_LOAD:
-    // case OSC_MESSAGE_TYPE_PRESET_SAVE:
-    //     osc_message_data->format = "f";
-    //     break;
+    case OSC_MESSAGE_TYPE_PRESET_SAVE:
+    {
+        osc_message_data->format = "s";
+        osc_message_data->path = "/rnbo/inst/0/presets/save";
+        std::stringstream preset_name;
+        preset_name << std::setw(3) << std::setfill('0') << (int)queue_message->buffer[1];
+        std::cout << preset_name.str() << std::endl;
+        osc_message_data->val_string = preset_name.str();
+    }
+    break;
+    case OSC_MESSAGE_TYPE_PRESET_LOAD:
+    {
+        osc_message_data->format = "s";
+        osc_message_data->path = "/rnbo/inst/0/presets/load";
+        std::stringstream preset_name;
+        preset_name << std::setw(3) << std::setfill('0') << (int)queue_message->buffer[1];
+        std::cout << preset_name.str() << std::endl;
+        osc_message_data->val_string = preset_name.str();
+    }
+    break;
     default:
         // do nothing
         break;
     }
-    osc_message_data->path = this->data_handler->getPathForController(
-        osc_message_data->unit,
-        osc_message_data->controller);
+
+    // TODO: implement save and load messages
+    // case OSC_MESSAGE_TYPE_PRESET_LOAD:
 }
 
 void OscSender::addRNBOListenter()
@@ -96,7 +144,7 @@ void OscSender::sendMessage(const char *address, const char *format, ...)
         }
         catch (const char *msg)
         {
-            std::cerr << "RNBO Listener not added: " << msg << std::endl;
+            std::cerr << "Erros sending message: " << msg << std::endl;
             return;
         }
     }

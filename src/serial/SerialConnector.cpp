@@ -117,7 +117,7 @@ void SerialConnector::threadLoop()
                 msg_type = OSC_MESSAGE_TYPE_NONE;
             }
         };
-        usleep(100);
+        usleep(THREAD_LOOP_SLEEP_US);
     }
     close(fd);
     if (this->debug)

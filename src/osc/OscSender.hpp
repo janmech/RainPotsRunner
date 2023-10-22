@@ -12,6 +12,8 @@ extern "C"
 #include <iostream>
 #include <cstdarg>
 #include <deque>
+#include <iomanip>
+#include <sstream>
 #include "tinyosc/tinyosc.h"
 #include "../data/DataHandler.hpp"
 #include "../data/TSQueue.hpp"

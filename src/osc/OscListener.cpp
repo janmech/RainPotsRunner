@@ -67,13 +67,12 @@ void OscListener::threadLoop()
                         this->data_handler->getCollectValues() && std::mismatch(suffix.rbegin(), suffix.rend(), address.rbegin()).first == suffix.rend())
                     {
                         float value = tosc_getNextFloat(&osc);
-                        printf("value__: %.3f\n", value);
                         this->data_handler->setPathValue(address, value);
                     };
                 }
             }
         }
-        usleep(100);
+        usleep(THREAD_LOOP_SLEEP_US);
     }
 
     // close the UDP socket

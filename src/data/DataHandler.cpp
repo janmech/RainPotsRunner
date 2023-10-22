@@ -65,7 +65,8 @@ float DataHandler::makeValueFLoat(int unit, int controler, int raw_value)
             }
         }
     }
-    return normalized_value;
+    
+    return (float)((int)(normalized_value * 1000.)) / 1000.f;
 }
 
 bool DataHandler::getCollectValues()
