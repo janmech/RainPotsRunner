@@ -1,55 +1,51 @@
 #ifndef __OSC_SENDER__
 #define __OSC_SENDER__
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #ifdef __cplusplus
 }
 #endif
-#include <string>
-#include <iostream>
+#include "../TheadClass/ThreadClass.h"
+#include "../bash_colors.hpp"
+#include "../data/DataHandler.hpp"
+#include "../data/TSQueue.hpp"
+#include "tinyosc/tinyosc.h"
 #include <cstdarg>
 #include <deque>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
-#include "tinyosc/tinyosc.h"
-#include "../data/DataHandler.hpp"
-#include "../data/TSQueue.hpp"
-#include "../TheadClass/ThreadClass.h"
-#include "../bash_colors.hpp"
+#include <string>
 
 #define OSC_MESSAGE_TYPE_NONE 0
 #define OSC_MESSAGE_TYPE_CC 1
 #define OSC_MESSAGE_TYPE_PRESET_LOAD 2
 #define OSC_MESSAGE_TYPE_PRESET_SAVE 3
 
-typedef struct queue_entry_message_t
-{
-    uint8_t type = OSC_MESSAGE_TYPE_NONE;
-    char *buffer = NULL;
-    int buffer_size = 0;
+typedef struct queue_entry_message_t {
+    uint8_t type        = OSC_MESSAGE_TYPE_NONE;
+    char*   buffer      = NULL;
+    int     buffer_size = 0;
 
     /* data */
 } queue_entry_message_t;
 
-typedef struct msg_osc_t
-{
-    int unit = 0;
-    int controller = 0;
-    std::string path = "";
-    std::string format = "";
+typedef struct msg_osc_t {
+    int         unit       = 0;
+    int         controller = 0;
+    std::string path       = "";
+    std::string format     = "";
     std::string val_string = "";
-    float val_float = 0.f;
+    float       val_float  = 0.f;
 } msg_osc_t;
 
-class OscSender : public ThreadClass
-{
+class OscSender : public ThreadClass {
 public:
-    OscSender(DataHandler *data_handler, bool debug = false)
+    OscSender(DataHandler* data_handler, bool debug = false)
     {
-        this->debug = debug;
+        this->debug        = debug;
         this->data_handler = data_handler;
     }
 
@@ -57,26 +53,26 @@ public:
     { /* empty */
     }
     void addRNBOListenter();
-    void addToMessageQueue(queue_entry_message_t *message);
-    void sendMessage(const char *address, const char *format, ...);
+    void addToMessageQueue(queue_entry_message_t* message);
+    void sendMessage(const char* address, const char* format, ...);
 
 protected:
-    bool debug = false;
-    DataHandler *data_handler;
-    int socket_out = -1;
-    struct sockaddr_in addr_out;
-    std::deque<queue_entry_message_t *> message_queue;
-    TSQueue<queue_entry_message_t *> ts_message_queue;
+    bool                               debug = false;
+    DataHandler*                       data_handler;
+    int                                socket_out = -1;
+    struct sockaddr_in                 addr_out;
+    std::deque<queue_entry_message_t*> message_queue;
+    TSQueue<queue_entry_message_t*>    ts_message_queue;
 
     float makeValueFLoat(int unit, int controler, int raw_value);
-    int openOutSocket();
-    void threadLoop();
-    void getOscMessageData(queue_entry_message_t *queue_message, msg_osc_t *osc_message_data);
+    int   openOutSocket();
+    void  threadLoop();
+    void  getOscMessageData(queue_entry_message_t* queue_message, msg_osc_t* osc_message_data);
 
 private:
-    static void *InternalThreadEntryFunc(void *This)
+    static void* InternalThreadEntryFunc(void* This)
     {
-        ((OscSender *)This)->threadLoop();
+        ((OscSender*)This)->threadLoop();
         return NULL;
     }
 

@@ -1,33 +1,30 @@
 #ifndef __THREAD_CLASS__
 #define __THREAD_CLASS__
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <arpa/inet.h>
-#include <sys/select.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <pthread.h>
+#include <unistd.h>
 #ifdef __cplusplus
 }
 #endif
 
-#include <string>
 #include <iostream>
+#include <string>
 
 #define THREAD_LOOP_SLEEP_US 1000
 
-class ThreadClass
-{
+class ThreadClass {
 public:
     ThreadClass()
     { /* empty */
@@ -35,7 +32,7 @@ public:
     virtual ~ThreadClass()
     { /* empty */
     }
-    
+
     /** Returns true if the thread was successfully started, false if there was an error starting the thread */
     bool start()
     {
@@ -56,12 +53,12 @@ public:
 
 protected:
     virtual void threadLoop() = 0;
-    bool keep_running = true;
+    bool         keep_running = true;
 
 private:
-    static void *InternalThreadFunc(void *This)
+    static void* InternalThreadFunc(void* This)
     {
-        ((ThreadClass *)This)->threadLoop();
+        ((ThreadClass*)This)->threadLoop();
         return NULL;
     }
 
