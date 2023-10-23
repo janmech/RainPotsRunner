@@ -24,47 +24,65 @@ preset_index_map_t DataHandler::getPresets(bool force_load)
     return this->presets;
 }
 
-// bool DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queue_entry_t* serial_queue_entry) { 
+int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queue_entry_t* serial_queue_entry)
+{
+    int pick_up_action = PICK_UP_NONE;
 
-// }
+    if (msg->type == OSC_MESSAGE_TYPE_CC && msg->buffer_size >= 4) {
 
-// int getMessagedestination(queue_entry_message_t* msg)
-// {
-//     int destination = MSG_DESITNATION_NONE;
-//     if (msg->type != OSC_MESSAGE_TYPE_NONE) {
-//         if (msg->type != OSC_MESSAGE_TYPE_CC) {
-//             destination = MSG_DESITNATION_OSC;
-//         } else {
-//             // check if controller is locked and or loaded.
-//             // If yes send to OSC if not send to Serial to signal pick up state
-//             if (msg->buffer_size < 4) {
-//                 return MSG_DESITNATION_NONE;
-//             }
-//             int         unit       = (int)msg->buffer[0] & 0x0F;
-//             int         controller = (int)msg->buffer[1];
-//             std::string path       = this->getPathForController(unit, controller);
-//             if (path != "") {
-//                 // this->path_values;
-//                 // look if path
-//                 if (this->path_values.find(path) != this->path_values.end()) {
-//                     bool loaded = this->path_values[path].loaded;
-//                     bool locked = this->path_values[path].loaded;
-//                     // !loaded: We dont have any infomation about the param value so we send the messageto RNBO Patcher
-//                     // locked: RainPot Controller value and RNBO mPAthcher are locked, we can send the change
-//                     if (!loaded || locked) {
-//                         destination = MSG_DESITNATION_OSC;
-//                     } else {
-//                         // We need to signal the pick up direction to the RainPot Meter Module
-//                         destination = MSG_DESITNATION_SERIAL;
-//                     }
-//                 }
+        int unit       = (int)(msg->buffer[0] & 0x0F);
+        int controller = (int)msg->buffer[1];
+        if (controller >= 6) { // We only check for knobs, not for buttons
+            if (this->contollerIsAssigned(unit, controller)) {
+                std::string path = this->getPathForController(unit, controller);
+                if (this->path_values.find(path) != this->path_values.end()) {
+                    path_value_t ctl_state = this->path_values[path];
 
-//                 destination = MSG_DESITNATION_OSC;
-//             }
-//         }
-//     }
-//     return destination;
-// }
+                    if (ctl_state.locked || !ctl_state.loaded) { // if not loaded we dont have information so just send the new param values
+                        pick_up_action = PICK_UP_LOCKED;
+                    } else if (ctl_state.loaded) {
+                        // is the current value hieger or lower than the loaded one?
+                        int   raw_int_value = (int)((msg->buffer[3] << 7) | msg->buffer[2]);
+                        float float_value   = this->makeValueFLoat(unit, controller, raw_int_value);
+                        float diff          = float_value - ctl_state.value;
+                        if (std::abs(diff) > 0.03f) {
+                            pick_up_action = (diff > 0) ? PICK_UP_TURN_DOWN : PICK_UP_TURN_UP;
+                        } else {
+                            pick_up_action = PICK_UP_LOCKED;
+                        }
+                    }
+                    // 0xF0 : Start Condition. MeterModule has by convention allway index 0
+                    // 0xE7 : Remote Command: signal pickup state
+                    // Last Byte:
+                    //         0x00 - Need to turn up
+                    //         0x01 - Need to turn down
+                    //         0x02 - Controller has picked up (Param is locked)
+                    serial_queue_entry->buffer[0] = 0xF0;
+                    serial_queue_entry->buffer[1] = 0xE7;
+                    switch (pick_up_action) {
+                    case PICK_UP_LOCKED:
+                        if (!ctl_state.locked) {
+                            ctl_state.locked        = true;
+                            this->path_values[path] = ctl_state;
+                        }
+                        serial_queue_entry->buffer[2] = 0x02;
+                        break;
+                    case PICK_UP_TURN_UP:
+                        serial_queue_entry->buffer[2] = 0x00;
+                        break;
+                    case PICK_UP_TURN_DOWN:
+                        serial_queue_entry->buffer[2] = 0x01;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return pick_up_action;
+}
 
 bool DataHandler::contollerIsAssigned(int unit, int controller)
 {

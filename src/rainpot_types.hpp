@@ -1,9 +1,9 @@
 #ifndef __RAINPOT_TYPES__
 #define __RAINPOT_TYPES__
 
+#include <cstdarg>
 #include <cstdint>
 #include <map>
-#include <cstdarg>
 // #include <stddef.h>
 #include <string>
 
@@ -11,6 +11,11 @@
 #define OSC_MESSAGE_TYPE_CC          1
 #define OSC_MESSAGE_TYPE_PRESET_LOAD 2
 #define OSC_MESSAGE_TYPE_PRESET_SAVE 3
+
+#define PICK_UP_NONE      -1
+#define PICK_UP_TURN_UP   0
+#define PICK_UP_TURN_DOWN 1
+#define PICK_UP_LOCKED    2
 
 typedef struct queue_entry_message_t {
     uint8_t type        = OSC_MESSAGE_TYPE_NONE;

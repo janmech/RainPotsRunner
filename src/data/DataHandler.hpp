@@ -5,6 +5,7 @@
 #else
 #include <jsoncpp/json/json.h>
 #endif
+#include <cstdlib>
 #include <curl/curl.h>
 #include <fstream>
 #include <iomanip>
@@ -32,7 +33,8 @@ public:
     float              makeValueFLoat(int unit, int controler, int raw_value);
     std::string        getPathForController(int unit, int controller);
     Json::Value        parseStringToJSON(std::string raw_json_string);
-    // bool                makeValuePickupMessasge(queue_entry_message_t* msg,serial_queue_entry_t* serial_queue_entry);
+    int                makeValuePickupMessasge(queue_entry_message_t* msg, serial_queue_entry_t* serial_queue_entry);
+
 
     static size_t writeCallback(void* contents, size_t size, size_t nmemb, void* userp)
     {

@@ -35,17 +35,16 @@ int main(int argc, char* argv[])
     ptr_osc_sender = &osc_sender;
     osc_sender.start();
 
-    /* ---------------------------------------------------- */
-    /* -- Runs in main thread, therefore MUST start last -- */
-    /* ---------------------------------------------------- */
     SerialConnector serial_connector(&osc_sender, &data_handler, debug);
     ptr_serial_connector = &serial_connector;
 
     OscListener osc_listener(&data_handler, &serial_connector, debug);
     ptr_osc_listener = &osc_listener;
     osc_listener.start();
-    // osc_sender.addRNBOListenter();
 
+    /* ---------------------------------------------------- */
+    /* -- Runs in main thread, therefore MUST start last -- */
+    /* ---------------------------------------------------- */
     serial_connector.start();
 
     while (running) {
