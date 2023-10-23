@@ -8,8 +8,10 @@ extern "C" {
 #endif
 #include "../TheadClass/ThreadClass.h"
 #include "../bash_colors.hpp"
+#include "../data/DataHandler.hpp"
 #include "../data/TSQueue.hpp"
 #include "../osc/OscSender.hpp"
+#include "../rainpot_types.hpp"
 #include <cstring>
 #include <errno.h>
 #include <fcntl.h>
@@ -29,18 +31,13 @@ extern "C" {
 #define MSG_SAVE                0xF4
 #define MSG_SAVE_PACKET_SIZE    2
 
-typedef struct serial_queue_entry_t {
-    char* buffer      = NULL;
-    int   buffer_size = 0;
-
-} serial_queue_entry_t;
-
 class SerialConnector : public ThreadClass {
 public:
-    SerialConnector(OscSender* osc_sender, bool debug = false)
+    SerialConnector(OscSender* osc_sender, DataHandler* data_handler, bool debug = false)
     {
-        this->debug      = debug;
-        this->osc_sender = osc_sender;
+        this->debug        = debug;
+        this->osc_sender   = osc_sender;
+        this->data_handler = data_handler;
     }
 
     ~SerialConnector()
@@ -52,6 +49,7 @@ protected:
     TSQueue<serial_queue_entry_t*> ts_message_queue;
     bool                           debug = false;
     OscSender*                     osc_sender;
+    DataHandler*                   data_handler;
     void                           threadLoop();
 
 private:

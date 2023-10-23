@@ -24,6 +24,48 @@ preset_index_map_t DataHandler::getPresets(bool force_load)
     return this->presets;
 }
 
+// bool DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queue_entry_t* serial_queue_entry) { 
+
+// }
+
+// int getMessagedestination(queue_entry_message_t* msg)
+// {
+//     int destination = MSG_DESITNATION_NONE;
+//     if (msg->type != OSC_MESSAGE_TYPE_NONE) {
+//         if (msg->type != OSC_MESSAGE_TYPE_CC) {
+//             destination = MSG_DESITNATION_OSC;
+//         } else {
+//             // check if controller is locked and or loaded.
+//             // If yes send to OSC if not send to Serial to signal pick up state
+//             if (msg->buffer_size < 4) {
+//                 return MSG_DESITNATION_NONE;
+//             }
+//             int         unit       = (int)msg->buffer[0] & 0x0F;
+//             int         controller = (int)msg->buffer[1];
+//             std::string path       = this->getPathForController(unit, controller);
+//             if (path != "") {
+//                 // this->path_values;
+//                 // look if path
+//                 if (this->path_values.find(path) != this->path_values.end()) {
+//                     bool loaded = this->path_values[path].loaded;
+//                     bool locked = this->path_values[path].loaded;
+//                     // !loaded: We dont have any infomation about the param value so we send the messageto RNBO Patcher
+//                     // locked: RainPot Controller value and RNBO mPAthcher are locked, we can send the change
+//                     if (!loaded || locked) {
+//                         destination = MSG_DESITNATION_OSC;
+//                     } else {
+//                         // We need to signal the pick up direction to the RainPot Meter Module
+//                         destination = MSG_DESITNATION_SERIAL;
+//                     }
+//                 }
+
+//                 destination = MSG_DESITNATION_OSC;
+//             }
+//         }
+//     }
+//     return destination;
+// }
+
 bool DataHandler::contollerIsAssigned(int unit, int controller)
 {
     return (this->param_config.find(unit) != this->param_config.end()) && (this->param_config[unit].find(controller) != this->param_config[unit].end());
@@ -112,7 +154,7 @@ void DataHandler::printPathValues()
     path_value_map_t           pv_map      = this->path_values;
     path_value_map_t::iterator pv_iterator = pv_map.begin();
 
-    std::cout << std::endl << BACO_GRAY << "<-> Param Values by Path:" << BACO_END << std::endl;
+    std::cout << BACO_GRAY << "<-> Param States by Path:" << BACO_END;
     std::cout << BACO_GRAY << std::endl << this->rightPad("Path", 50) << this->leftPad("Value", 8) << this->leftPad("Loaded", 8) << this->leftPad("Locked", 8) << BACO_END << std::endl;
     while (pv_iterator != pv_map.end()) {
         std::string  path  = pv_iterator->first;
@@ -164,7 +206,7 @@ void DataHandler::printParamConfig(bool force_load)
         std::cout << BACO_GRAY << "" << std::setw(10) << preset_iterator->first << "" << std::setw(7) << preset_iterator->second << BACO_END << std::endl;
         preset_iterator++;
     }
-    std::cout << BACO_END;
+    std::cout << BACO_END << std::endl;
 
     this->printPathValues();
 }

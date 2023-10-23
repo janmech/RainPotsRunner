@@ -124,12 +124,8 @@ void SerialConnector::threadLoop()
     close(fd);
     if (this->debug) {
         std::cout << "\tSerialConnector: Serial connection closed." << std::endl;
-        std::cout << "\tSerialConnector Terminated" << std::endl
-                  << std::endl;
+        std::cout << "\tSerialConnector Terminated" << std::endl << std::endl;
     }
 }
 
-void SerialConnector::addToMessageQueue(serial_queue_entry_t* message)
-{
-    this->ts_message_queue.push(message);
-}
+void SerialConnector::addToMessageQueue(serial_queue_entry_t* message) { this->ts_message_queue.push(message); }

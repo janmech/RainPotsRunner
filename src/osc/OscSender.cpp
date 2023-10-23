@@ -102,7 +102,7 @@ void OscSender::sendMessage(const char* address, const char* format, ...)
         try {
             int sock_fd = this->openOutSocket();
             if (this->debug) {
-                std::cout << BACO_YELLO << "UDP Socket: " << sock_fd << BACO_END << std::endl;
+                std::cout << BACO_YELLO << "UDP Socket Descriptor: " << sock_fd << BACO_END << std::endl;
             }
 
         } catch (const char* msg) {
