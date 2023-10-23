@@ -2,6 +2,7 @@
 
 void OscSender::threadLoop()
 {
+    this->addRNBOListenter();
     while (this->keep_running) {
         if (this->ts_message_queue.size() > 0) {
             queue_entry_message_t* msg = this->ts_message_queue.pop();
@@ -18,9 +19,7 @@ void OscSender::threadLoop()
                 const char* path   = message_data.path.c_str();
                 const char* format = message_data.format.c_str();
                 if (this->debug) {
-                    std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << std::endl
-                              << "\t" << path << std::endl
-                              << "\t" << format << std::endl;
+                    std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << std::endl << "\t" << path << std::endl << "\t" << format << std::endl;
                     if (format[0] == 'f') {
                         std::cout << "\t" << message_data.val_float << std::endl;
                     } else if (format[0] == 's') {
@@ -31,18 +30,12 @@ void OscSender::threadLoop()
                 }
                 switch (msg->type) {
                 case OSC_MESSAGE_TYPE_CC:
-                    this->sendMessage(
-                        path,
-                        format,
-                        message_data.val_float);
+                    this->sendMessage(path, format, message_data.val_float);
                     break;
                 case OSC_MESSAGE_TYPE_PRESET_LOAD:
                 case OSC_MESSAGE_TYPE_PRESET_SAVE: {
                     const char* string_val = message_data.val_string.c_str();
-                    this->sendMessage(
-                        path,
-                        format,
-                        string_val);
+                    this->sendMessage(path, format, string_val);
                 } break;
 
                 default:
@@ -57,15 +50,11 @@ void OscSender::threadLoop()
     close(this->socket_out);
     if (this->debug) {
         std::cout << "\tOscSender: UDP socket closed" << std::endl;
-        std::cout << "\tOscSender Terminated" << std::endl
-                  << std::endl;
+        std::cout << "\tOscSender Terminated" << std::endl << std::endl;
     }
 }
 
-void OscSender::addToMessageQueue(queue_entry_message_t* message)
-{
-    this->ts_message_queue.push(message);
-}
+void OscSender::addToMessageQueue(queue_entry_message_t* message) { this->ts_message_queue.push(message); }
 
 void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_t* osc_message_data)
 {
@@ -74,14 +63,9 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
     switch (queue_message->type) {
     case OSC_MESSAGE_TYPE_CC: {
         int raw_int_value           = (int)((queue_message->buffer[3] << 7) | queue_message->buffer[2]);
-        osc_message_data->val_float = this->data_handler->makeValueFLoat(
-            osc_message_data->unit,
-            osc_message_data->controller,
-            raw_int_value);
-        osc_message_data->format = "f";
-        osc_message_data->path   = this->data_handler->getPathForController(
-            osc_message_data->unit,
-            osc_message_data->controller);
+        osc_message_data->val_float = this->data_handler->makeValueFLoat(osc_message_data->unit, osc_message_data->controller, raw_int_value);
+        osc_message_data->format    = "f";
+        osc_message_data->path      = this->data_handler->getPathForController(osc_message_data->unit, osc_message_data->controller);
     } break;
     case OSC_MESSAGE_TYPE_PRESET_SAVE: {
         osc_message_data->format = "s";
@@ -110,19 +94,19 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
     }
 }
 
-void OscSender::addRNBOListenter()
-{
-
-    this->sendMessage("/rnbo/listeners/add", "s", "127.0.0.1:5555");
-}
+void OscSender::addRNBOListenter() { this->sendMessage("/rnbo/listeners/add", "s", "127.0.0.1:5555"); }
 
 void OscSender::sendMessage(const char* address, const char* format, ...)
 {
     if (this->socket_out < 0) {
         try {
-            this->openOutSocket();
+            int sock_fd = this->openOutSocket();
+            if (this->debug) {
+                std::cout << BACO_YELLO << "UDP Socket: " << sock_fd << BACO_END << std::endl;
+            }
+
         } catch (const char* msg) {
-            std::cerr << "Erros sending message: " << msg << std::endl;
+            std::cerr << "Error sending message: " << msg << std::endl;
             return;
         }
     }

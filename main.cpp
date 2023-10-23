@@ -9,8 +9,7 @@ SerialConnector* ptr_serial_connector;
 void handle_sigint()
 {
     pid_t pid = getpid();
-    std::cout << std::endl
-              << BACO_YELLO << "Terminating main thread: " << pid << BACO_END << std::endl;
+    std::cout << std::endl << BACO_YELLO << "Terminating main thread: " << pid << BACO_END << std::endl;
     running = false;
     ptr_osc_sender->stop();
     ptr_osc_listener->stop();
@@ -34,19 +33,20 @@ int main(int argc, char* argv[])
 
     OscSender osc_sender(&data_handler, debug);
     ptr_osc_sender = &osc_sender;
+    osc_sender.start();
 
+    /* ---------------------------------------------------- */
+    /* -- Runs in main thread, therefore MUST start last -- */
+    /* ---------------------------------------------------- */
     SerialConnector serial_connector(&osc_sender, debug);
     ptr_serial_connector = &serial_connector;
 
     OscListener osc_listener(&data_handler, &serial_connector, debug);
     ptr_osc_listener = &osc_listener;
-
-    osc_sender.start();
     osc_listener.start();
-    // Runs in main thread, therefore must start last
-    serial_connector.start();
+    // osc_sender.addRNBOListenter();
 
-    osc_sender.addRNBOListenter();
+    serial_connector.start();
 
     while (running) {
         sleep(5);
