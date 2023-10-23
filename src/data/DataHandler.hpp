@@ -5,6 +5,8 @@
 #else
 #include <jsoncpp/json/json.h>
 #endif
+#include "../bash_colors.hpp"
+#include "../rainpot_types.hpp"
 #include <cstdlib>
 #include <curl/curl.h>
 #include <fstream>
@@ -15,8 +17,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include "../bash_colors.hpp"
-#include "../rainpot_types.hpp"
 
 class DataHandler {
 public:
@@ -34,7 +34,7 @@ public:
     std::string        getPathForController(int unit, int controller);
     Json::Value        parseStringToJSON(std::string raw_json_string);
     int                makeValuePickupMessasge(queue_entry_message_t* msg, serial_queue_entry_t* serial_queue_entry);
-
+    uint8_t            formatButtonValue(int button_index, float raw_value);
 
     static size_t writeCallback(void* contents, size_t size, size_t nmemb, void* userp)
     {

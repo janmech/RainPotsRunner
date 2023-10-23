@@ -61,6 +61,10 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
                     serial_queue_entry->buffer[1] = 0xE7;
                     switch (pick_up_action) {
                     case PICK_UP_LOCKED:
+                        // NOTE: For now we update the lock staus here. This for all practical cades should avoid a race condition
+                        //       A possible case foer a race condition could be updating the config (loading a Preset) while 
+                        //       the knob is turned.
+                        // FIXME: should be thread safe
                         if (!ctl_state.locked) {
                             ctl_state.locked        = true;
                             this->path_values[path] = ctl_state;

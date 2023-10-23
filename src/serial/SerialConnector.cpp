@@ -101,11 +101,12 @@ void SerialConnector::threadLoop()
                 if (msg.type != OSC_MESSAGE_TYPE_NONE) {
                     if (msg.type == OSC_MESSAGE_TYPE_CC) {
                         serial_queue_entry_t pick_up_message;
-                        char pickup_msg_buffer[] = {0x00, 0x00, 0x00}; 
-                        pick_up_message.buffer = pickup_msg_buffer;
+
+                        char pickup_msg_buffer[]    = { 0x00, 0x00, 0x00 };
+                        pick_up_message.buffer      = pickup_msg_buffer;
                         pick_up_message.buffer_size = 3;
 
-                        int                  pick_up_action = this->data_handler->makeValuePickupMessasge(&msg, &pick_up_message);
+                        int pick_up_action = this->data_handler->makeValuePickupMessasge(&msg, &pick_up_message);
                         if (pick_up_action == PICK_UP_NONE) {
                             this->osc_sender->addToMessageQueue(&msg);
                         } else {
@@ -128,8 +129,10 @@ void SerialConnector::threadLoop()
 
         // Send data from message queue
         if (this->ts_message_queue.size() > 0) {
-            serial_queue_entry_t* entry         = this->ts_message_queue.pop();
-            int                   bytes_written = write(fd, entry->buffer, entry->buffer_size);
+            serial_queue_entry_t* entry = this->ts_message_queue.pop();
+
+            int bytes_written = write(fd, entry->buffer, entry->buffer_size);
+
             if (this->debug) {
                 std::cout << BACO_MAGENTA << "<-- Sending serial packet: " << BACO_END;
                 std::cout << BACO_GRAY;

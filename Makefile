@@ -29,13 +29,15 @@ all: clean $(TARGET)
 clean:
 	rm -rf $(BUILD_PATH)*.o 
 	rm -rf $(BUILD_PATH)$(TARGET)
+	rm -rf $(BUILD_PATH)rainpots
 
 $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo "\n***************************\n"
 	@echo $(SRCS)
 	@echo $(SRCS_CPP)
 	@echo "\n***************************\n"
-	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$@ 
+	# $(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$@ 
+	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)rainpots
 	@echo "\n"
 
 
