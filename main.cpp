@@ -1,5 +1,7 @@
 #include "main.hpp"
 
+#include <string>
+
 bool             running = true;
 OscSender*       ptr_osc_sender;
 OscListener*     ptr_osc_listener;

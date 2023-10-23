@@ -77,7 +77,6 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
         }
         std::stringstream preset_name;
         preset_name << std::setw(3) << std::setfill('0') << (int)queue_message->buffer[1];
-        std::cout << preset_name.str() << std::endl;
         osc_message_data->val_string = preset_name.str();
     } break;
     case OSC_MESSAGE_TYPE_PRESET_LOAD: {
@@ -85,7 +84,6 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
         osc_message_data->path   = "/rnbo/inst/0/presets/load";
         std::stringstream preset_name;
         preset_name << std::setw(3) << std::setfill('0') << (int)queue_message->buffer[1];
-        std::cout << preset_name.str() << std::endl;
         osc_message_data->val_string = preset_name.str();
     } break;
     default:

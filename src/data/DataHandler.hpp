@@ -32,12 +32,13 @@ public:
     void                                setPathValue(std::string path, float value);
     bool                                contollerIsAssigned(int rainpot_uni, int controller);
     bool                                controllerIsCentered(int unit, int controller);
+    int                                 getConrollerSteps(int unit, int controller);
     float                               makeValueFLoat(int unit, int controler, int raw_value);
     std::string                         getPathForController(int unit, int controller);
     Json::Value                         parseStringToJSON(std::string raw_json_string);
     int                                 makeValuePickupMessasge(queue_entry_message_t* msg, serial_queue_entry_t* serial_queue_entry);
     std::map<int, serial_queue_entry_t> makeSetButtonValueMessages();
-    char                                formatButtonValue(int button_index, float raw_value);
+    char                                formatButtonValue(int unit, int button_index, float raw_value);
 
     static size_t writeCallback(void* contents, size_t size, size_t nmemb, void* userp)
     {

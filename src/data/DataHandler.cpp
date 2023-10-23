@@ -95,7 +95,9 @@ std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
 
     config_map_t::iterator unit_iterator = this->param_config.begin();
 
-    std::cout << BACO_GRAY << "<-> Collected Button Values for sending to RainPots: " << BACO_END << std::endl;
+    if (this->debug) {
+        std::cout << BACO_GRAY << "<-> Collected Button Values for sending to RainPots: " << BACO_END << std::endl;
+    }
 
     while (unit_iterator != this->param_config.end()) {
         int  unit            = unit_iterator->first;
@@ -131,7 +133,7 @@ std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
 
                 if (this->path_values.find(param_path) != this->path_values.end()) {
                     float normalized_value = this->path_values[param_path].value;
-                    char  rainpot_value    = this->formatButtonValue(ctl_index, normalized_value);
+                    char  rainpot_value    = this->formatButtonValue(unit, ctl_index, normalized_value);
 
                     if (this->debug) {
                         std::cout << BACO_GRAY << "    ctl:" << ctl_index << " p:" << param_path << " norm. val:" << normalized_value
@@ -166,6 +168,15 @@ bool DataHandler::controllerIsCentered(int unit, int controller)
         is_centered = this->param_config[unit][controller].center;
     }
     return is_centered;
+}
+
+int DataHandler::getConrollerSteps(int unit, int controller)
+{
+    int steps = -1;
+    if (this->contollerIsAssigned(unit, controller)) {
+        steps = this->param_config[unit][controller].steps;
+    }
+    return steps;
 }
 
 std::string DataHandler::getPathForController(int unit, int controller)
@@ -305,27 +316,35 @@ void DataHandler::printParamConfig(bool force_load)
     this->printPathValues();
 }
 
-char DataHandler::formatButtonValue(int button_index, float raw_value)
+char DataHandler::formatButtonValue(int unit, int button_index, float raw_value)
 {
     char formatted_value = 0;
-    if (button_index != 1) {
-        if (raw_value > 0) {
-            formatted_value = 1;
-        }
-    }
 
-    else {
-        if (raw_value == 0.f) {
-            formatted_value = 0;
-        } else {
-            formatted_value = (int)std::round(1. / raw_value);
-        }
-    }
+    int steps = (button_index == 1 || button_index == 2) ? this->getConrollerSteps(unit, button_index) : 2;
+    steps     = (steps < 2) ? 2 : steps;
+    steps     = (steps > 5) ? 5 : steps;
+
+    formatted_value = (int)std::round((steps - 1.) * raw_value);
+
+    // if (button_index != 1) {
+    //     if (raw_value > 0) {
+    //         formatted_value = 1;
+    //     }
+    // }
+
+    // else {
+    //     if (raw_value == 0.f) {
+    //         formatted_value = 0;
+    //     } else {
+    //         formatted_value = (int)std::round(1. / raw_value);
+    //     }
+    // }
 
     return formatted_value;
 }
 
 /* protected methods*/
+
 void DataHandler::loadConfig()
 {
     std::map<int, std::map<int, ctl_settings_t>> config_map;
