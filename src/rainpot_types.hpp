@@ -49,6 +49,7 @@ typedef struct msg_osc_t {
 } msg_osc_t;
 
 typedef struct serial_queue_entry_t {
+    // char* buffer      = NULL;
     char* buffer      = NULL;
     int   buffer_size = 0;
 

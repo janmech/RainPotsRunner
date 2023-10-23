@@ -36,7 +36,8 @@ void OscListener::threadLoop()
                     std::string address(tosc_getAddress(&osc));
                     if (this->debug) {
                         std::string format = tosc_getFormat(&osc);
-                        std::cout << BACO_CYAN << "--> Incoming OSC message from: " << BACO_GRAY << address << " [" << format << "]" << BACO_END << std::endl;
+                        std::cout << BACO_CYAN << "--> Incoming OSC message from: " << BACO_GRAY << address << " [" << format << "]"
+                                  << BACO_END << std::endl;
                     }
                     if (address == "/rnbo/resp") {
                         std::string response = std::string(tosc_getNextString(&osc));
@@ -45,7 +46,9 @@ void OscListener::threadLoop()
                         }
                         try {
                             Json::Value reponse = this->data_handler->parseStringToJSON(response);
-                            if (reponse["result"]["code"].asInt() == 2 && std::string(reponse["result"]["message"].asString()) == "loaded" && reponse["result"]["progress"].asInt() == 100
+                            if (reponse["result"]["code"].asInt() == 2
+                                && std::string(reponse["result"]["message"].asString()) == "loaded"
+                                && reponse["result"]["progress"].asInt() == 100
 
                             ) {
                                 this->data_handler->getParams(true);
@@ -78,7 +81,8 @@ void OscListener::threadLoop()
 
                     if (address == "/rnbo/inst/0/name" && this->patcher_load_received) {
                         /* When loading immediatle the presets don show up. Give  RNBO time to finish writing the config file*/
-                        // TODO: See if there is a more solid solution. This might fail patches with a lot of params. Maybe ask Alex Normann.
+                        // TODO: See if there is a more solid solution. This might fail patches with a lot of params. Maybe ask Alex
+                        // Normann.
                         usleep(200 * 1000);
                         this->data_handler->getParams(true);
                         this->patcher_load_received = false;
@@ -104,11 +108,19 @@ void OscListener::threadLoop()
                         if (this->debug) {
                             this->data_handler->printPathValues();
                         }
+                        std::map<int, serial_queue_entry_t>           ser_messages = this->data_handler->makeSetButtonValueMessages();
+                        std::map<int, serial_queue_entry_t>::iterator ser_msg_iterator = ser_messages.begin();
+
+                        while (ser_msg_iterator != ser_messages.end()) {
+                            this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
+                            ser_msg_iterator++;
+                        }
                     }
 
                     std::string suffix = "normalized";
 
-                    if (this->data_handler->getCollectValues() && std::mismatch(suffix.rbegin(), suffix.rend(), address.rbegin()).first == suffix.rend()) {
+                    if (this->data_handler->getCollectValues()
+                        && std::mismatch(suffix.rbegin(), suffix.rend(), address.rbegin()).first == suffix.rend()) {
                         float value = tosc_getNextFloat(&osc);
                         this->data_handler->setPathValue(address, value);
                     };
@@ -125,4 +137,3 @@ void OscListener::threadLoop()
         std::cout << "\tOscListener Terminated" << std::endl << std::endl;
     }
 }
-

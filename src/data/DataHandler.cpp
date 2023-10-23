@@ -38,7 +38,8 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
                 if (this->path_values.find(path) != this->path_values.end()) {
                     path_value_t ctl_state = this->path_values[path];
 
-                    if (ctl_state.locked || !ctl_state.loaded) { // if not loaded we dont have information so just send the new param values
+                    if (ctl_state.locked
+                        || !ctl_state.loaded) { // if not loaded we dont have information so just send the new param values
                         pick_up_action = PICK_UP_LOCKED;
                     } else if (ctl_state.loaded) {
                         // is the current value hieger or lower than the loaded one?
@@ -62,7 +63,7 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
                     switch (pick_up_action) {
                     case PICK_UP_LOCKED:
                         // NOTE: For now we update the lock staus here. This for all practical cades should avoid a race condition
-                        //       A possible case foer a race condition could be updating the config (loading a Preset) while 
+                        //       A possible case foer a race condition could be updating the config (loading a Preset) while
                         //       the knob is turned.
                         // FIXME: should be thread safe
                         if (!ctl_state.locked) {
@@ -88,9 +89,74 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
     return pick_up_action;
 }
 
+std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
+{
+    std::map<int, serial_queue_entry_t> serial_messages;
+
+    config_map_t::iterator unit_iterator = this->param_config.begin();
+
+    std::cout << BACO_GRAY << "<-> Collected Button Values for sending to RainPots: " << BACO_END << std::endl;
+
+    while (unit_iterator != this->param_config.end()) {
+        int  unit            = unit_iterator->first;
+        char start_condition = 0xF0 | (char)unit;
+
+        char* message_buffer = new char[8];
+
+        message_buffer[0] = start_condition;
+        message_buffer[1] = (char)0xE5;
+        message_buffer[2] = (char)0x0F;
+        message_buffer[3] = (char)0x0F;
+        message_buffer[4] = (char)0x0F;
+        message_buffer[5] = (char)0x0F;
+        message_buffer[6] = (char)0x0F;
+        message_buffer[7] = (char)0x0F;
+
+        serial_queue_entry_t serial_queue_entry;
+
+        serial_queue_entry.buffer_size = 8;
+
+        if (this->debug) {
+            std::cout << BACO_GRAY << "  Unit: " << unit << BACO_END << std::endl;
+        }
+
+        std::map<int, ctl_settings_t>::iterator ctl_iterator = unit_iterator->second.begin();
+        while (ctl_iterator != unit_iterator->second.end()) {
+
+            int ctl_index = ctl_iterator->first;
+            if (ctl_index < 6) { // We only cate aboyt buttons here
+
+                ctl_settings_t ctl_settings = ctl_iterator->second;
+                std::string    param_path   = ctl_settings.path;
+
+                if (this->path_values.find(param_path) != this->path_values.end()) {
+                    float normalized_value = this->path_values[param_path].value;
+                    char  rainpot_value    = this->formatButtonValue(ctl_index, normalized_value);
+
+                    if (this->debug) {
+                        std::cout << BACO_GRAY << "    ctl:" << ctl_index << " p:" << param_path << " norm. val:" << normalized_value
+                                  << " final val: " << +rainpot_value << BACO_END << std::endl;
+                    }
+
+                    message_buffer[ctl_index + 2] = rainpot_value;
+                }
+            }
+            ctl_iterator++;
+        }
+        if (this->debug) {
+            std::cout << std::endl;
+        }
+        serial_queue_entry.buffer = message_buffer;
+        serial_messages.insert(std::make_pair(unit, serial_queue_entry));
+        unit_iterator++;
+    }
+    return serial_messages;
+}
+
 bool DataHandler::contollerIsAssigned(int unit, int controller)
 {
-    return (this->param_config.find(unit) != this->param_config.end()) && (this->param_config[unit].find(controller) != this->param_config[unit].end());
+    return (this->param_config.find(unit) != this->param_config.end())
+        && (this->param_config[unit].find(controller) != this->param_config[unit].end());
 }
 
 bool DataHandler::controllerIsCentered(int unit, int controller)
@@ -177,12 +243,15 @@ void DataHandler::printPathValues()
     path_value_map_t::iterator pv_iterator = pv_map.begin();
 
     std::cout << BACO_GRAY << "<-> Param States by Path:" << BACO_END;
-    std::cout << BACO_GRAY << std::endl << this->rightPad("Path", 50) << this->leftPad("Value", 8) << this->leftPad("Loaded", 8) << this->leftPad("Locked", 8) << BACO_END << std::endl;
+    std::cout << BACO_GRAY << std::endl
+              << this->rightPad("Path", 50) << this->leftPad("Value", 8) << this->leftPad("Loaded", 8) << this->leftPad("Locked", 8)
+              << BACO_END << std::endl;
     while (pv_iterator != pv_map.end()) {
         std::string  path  = pv_iterator->first;
         path_value_t value = pv_iterator->second;
 
-        std::cout << BACO_GRAY << this->rightPad(path, 50) << "" << std::setw(8) << value.value << "" << std::setw(8) << value.loaded << "" << std::setw(8) << value.locked << BACO_END << std::endl;
+        std::cout << BACO_GRAY << this->rightPad(path, 50) << "" << std::setw(8) << value.value << "" << std::setw(8) << value.loaded
+                  << "" << std::setw(8) << value.locked << BACO_END << std::endl;
         pv_iterator++;
     }
     std::cout << std::endl;
@@ -203,7 +272,9 @@ void DataHandler::printParamConfig(bool force_load)
         std::cout << "\nUNIT: " << unit << std::endl;
         std::map<int, ctl_settings_t>::iterator ctl_iterator = unit_iterator->second.begin();
         while (ctl_iterator != unit_iterator->second.end()) {
-            int            ctl      = ctl_iterator->first;
+
+            int ctl = ctl_iterator->first;
+
             ctl_settings_t settings = ctl_iterator->second;
             std::cout << "\t ctl: " << ctl << std::endl;
             std::cout << "\t   path: " << settings.path << std::endl;
@@ -225,12 +296,33 @@ void DataHandler::printParamConfig(bool force_load)
               << "" << std::setw(7) << "Index" << BACO_END << std::endl;
 
     while (preset_iterator != presets.end()) {
-        std::cout << BACO_GRAY << "" << std::setw(10) << preset_iterator->first << "" << std::setw(7) << preset_iterator->second << BACO_END << std::endl;
+        std::cout << BACO_GRAY << "" << std::setw(10) << preset_iterator->first << "" << std::setw(7) << preset_iterator->second
+                  << BACO_END << std::endl;
         preset_iterator++;
     }
     std::cout << BACO_END << std::endl;
 
     this->printPathValues();
+}
+
+char DataHandler::formatButtonValue(int button_index, float raw_value)
+{
+    char formatted_value = 0;
+    if (button_index != 1) {
+        if (raw_value > 0) {
+            formatted_value = 1;
+        }
+    }
+
+    else {
+        if (raw_value == 0.f) {
+            formatted_value = 0;
+        } else {
+            formatted_value = (int)std::round(1. / raw_value);
+        }
+    }
+
+    return formatted_value;
 }
 
 /* protected methods*/
@@ -292,7 +384,8 @@ void DataHandler::loadConfig()
         this->param_config = config_map;
 
         // Parsing prests into map
-        const Json::Value  presets = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["presets"]["CONTENTS"]["entries"]["VALUE"];
+        const Json::Value presets
+            = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["presets"]["CONTENTS"]["entries"]["VALUE"];
         preset_index_map_t preset_index_map;
         for (int preset_index = 0; preset_index < presets.size(); preset_index++) {
             preset_index_map.insert(std::make_pair(presets[preset_index].asString(), preset_index));

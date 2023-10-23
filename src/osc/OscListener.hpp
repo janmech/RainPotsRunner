@@ -15,6 +15,7 @@ extern "C" {
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <vector>
 
 class OscListener : public ThreadClass {
 public:
