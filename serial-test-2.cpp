@@ -11,22 +11,24 @@
 #include <unistd.h> // write(), read(), close()
 
 namespace foo {
-    #include <sys/ioctl.h>
+#include <sys/ioctl.h>
 }
 
 int main()
 {
+    printf("Running test....\n");
     // Open the serial port. Change device path as needed (currently set to an standard FTDI USB-UART cable type device)
-    int serial_port = open("/dev/ttyUSB0", O_RDWR);
-    if(serial_port < 0) {
+    int serial_port = open("/dev/ttyS0", O_RDWR);
+    if (serial_port < 0) {
         printf("Error opening Serial Port");
+        return 1;
     }
 
     // Create new termios struct, we call it 'tty' for convention
     struct termios2 tty;
 
     // Read in existing settings, and handle any error
-   foo::ioctl(serial_port, TCGETS2, &tty);
+    foo::ioctl(serial_port, TCGETS2, &tty);
 
     tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
     tty.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in communication (most common)
@@ -56,9 +58,10 @@ int main()
     tty.c_ispeed = 380400; // What a custom baud rate!
     tty.c_ospeed = 380400;
 
-   foo::ioctl(serial_port, TCSETS2, &tty);
+    // tty.c_ispeed = 230400; // What a custom baud rate!
+    // tty.c_ospeed = 230400;
 
-
+    foo::ioctl(serial_port, TCSETS2, &tty);
 
     char serial_in_buffer[10];
     int  received;
