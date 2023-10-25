@@ -6,9 +6,8 @@ bool             running = true;
 OscSender*       ptr_osc_sender;
 OscListener*     ptr_osc_listener;
 DataHandler*     ptr_data_handler;
-SerialConnector* ptr_serial_connector;
-
-void handle_sigint()
+SerialConnector* ptr_serial_connector; // foo
+void             handle_sigint()
 {
     pid_t pid = getpid();
     std::cout << std::endl << BACO_YELLO << "Terminating main thread: " << pid << BACO_END << std::endl;

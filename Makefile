@@ -40,5 +40,8 @@ $(TARGET): $(SRCS) $(SRCS_CPP)
 	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)rainpots
 	@echo "\n"
 
+install:
+	sudo cp ./$(BUILD_PATH)rainpots /usr/bin
+
 
 

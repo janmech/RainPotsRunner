@@ -36,6 +36,24 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
             if (this->contollerIsAssigned(unit, controller)) {
                 std::string path = this->getPathForController(unit, controller);
                 if (this->path_values.find(path) != this->path_values.end()) {
+
+                    std::string key_unit      = std::to_string(unit);
+                    std::string key_ctl       = std::to_string(controller);
+                    std::string value_id      = key_unit + " " + key_ctl;
+                    int         raw_int_value = (int)((msg->buffer[3] << 7) | msg->buffer[2]);
+                    float       float_value   = this->makeValueFLoat(unit, controller, raw_int_value);
+
+                    // Depending on the power supply situation the RainPots knobs can fluctiate. 
+                    // Let's put a margin for the indicator leds so they dont flicker too much.
+                    if (this->last_sent_ctl_values.find(value_id) != this->last_sent_ctl_values.end()) {
+                        if (std::abs(this->last_sent_ctl_values[value_id] - float_value) < 0.03) {
+                            return pick_up_action;
+                        } else {
+                            this->last_sent_ctl_values[value_id] = float_value;
+                        }
+                    } else {
+                        this->last_sent_ctl_values.insert(std::make_pair(value_id, float_value));
+                    }
                     path_value_t ctl_state = this->path_values[path];
 
                     if (ctl_state.locked
@@ -43,9 +61,8 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
                         pick_up_action = PICK_UP_LOCKED;
                     } else if (ctl_state.loaded) {
                         // is the current value hieger or lower than the loaded one?
-                        int   raw_int_value = (int)((msg->buffer[3] << 7) | msg->buffer[2]);
-                        float float_value   = this->makeValueFLoat(unit, controller, raw_int_value);
-                        float diff          = float_value - ctl_state.value;
+
+                        float diff = float_value - ctl_state.value;
                         if (std::abs(diff) > 0.03f) {
                             pick_up_action = (diff > 0) ? PICK_UP_TURN_DOWN : PICK_UP_TURN_UP;
                         } else {
@@ -325,20 +342,6 @@ char DataHandler::formatButtonValue(int unit, int button_index, float raw_value)
     steps     = (steps > 5) ? 5 : steps;
 
     formatted_value = (int)std::round((steps - 1.) * raw_value);
-
-    // if (button_index != 1) {
-    //     if (raw_value > 0) {
-    //         formatted_value = 1;
-    //     }
-    // }
-
-    // else {
-    //     if (raw_value == 0.f) {
-    //         formatted_value = 0;
-    //     } else {
-    //         formatted_value = (int)std::round(1. / raw_value);
-    //     }
-    // }
 
     return formatted_value;
 }

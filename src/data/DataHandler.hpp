@@ -53,7 +53,8 @@ protected:
     bool               debug = false;
     config_map_t       param_config;
     path_value_map_t   path_values;
-    preset_index_map_t presets; // Wecurrently don't use this map. It's still here for future features
+    preset_index_map_t presets; // Wec urrently don't use this map. It's still here for future features
+    ctl_value_map_t    last_sent_ctl_values;
     bool               collect_values = false;
     void               loadConfig();
     float              scaleValue(float x, float in_min = 0., float in_max = 1., float out_min = 0., float out_max = 0.);

@@ -54,4 +54,6 @@ typedef struct serial_queue_entry_t {
     int   buffer_size = 0;
 
 } serial_queue_entry_t;
+
+typedef std::map<std::string, float> ctl_value_map_t;
 #endif
