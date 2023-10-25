@@ -48,9 +48,7 @@ void OscListener::threadLoop()
                             Json::Value reponse = this->data_handler->parseStringToJSON(response);
                             if (reponse["result"]["code"].asInt() == 2
                                 && std::string(reponse["result"]["message"].asString()) == "loaded"
-                                && reponse["result"]["progress"].asInt() == 100
-
-                            ) {
+                                && reponse["result"]["progress"].asInt() == 100) {
                                 this->data_handler->getParams(true);
                                 if (this->debug) {
                                     this->data_handler->printParamConfig();
@@ -66,7 +64,7 @@ void OscListener::threadLoop()
                         float meter_value = tosc_getNextFloat(&osc) * 255.;
 
                         char msg_buffer[4] = { 0xF0, // Start Condition - by convetion RainPotMeterModule is always at index 0
-                            0xE6, // Remote Message: Set Meter
+                            0xE6,                    // Remote Message: Set Meter
                             (char)meter_index, (char)meter_value };
 
                         serial_queue_entry_t serial_queue_entry;

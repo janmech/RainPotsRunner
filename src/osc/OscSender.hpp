@@ -7,18 +7,18 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "../TheadClass/ThreadClass.h"
+#include "../bash_colors.hpp"
+#include "../data/DataHandler.hpp"
+#include "../data/TSQueue.hpp"
+#include "../rainpot_types.hpp"
+#include "tinyosc/tinyosc.h"
 #include <cstdarg>
 #include <deque>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "../rainpot_types.hpp"
-#include "../TheadClass/ThreadClass.h"
-#include "../bash_colors.hpp"
-#include "../data/DataHandler.hpp"
-#include "../data/TSQueue.hpp"
-#include "tinyosc/tinyosc.h"
 
 class OscSender : public ThreadClass {
 public:

@@ -19,7 +19,9 @@ void OscSender::threadLoop()
                 const char* path   = message_data.path.c_str();
                 const char* format = message_data.format.c_str();
                 if (this->debug) {
-                    std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << std::endl << "\t" << path << std::endl << "\t" << format << std::endl;
+                    std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << std::endl
+                              << "\t" << path << std::endl
+                              << "\t" << format << std::endl;
                     if (format[0] == 'f') {
                         std::cout << "\t" << message_data.val_float << std::endl;
                     } else if (format[0] == 's') {
@@ -62,10 +64,11 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
     osc_message_data->controller = (int)queue_message->buffer[1];
     switch (queue_message->type) {
     case OSC_MESSAGE_TYPE_CC: {
-        int raw_int_value           = (int)((queue_message->buffer[3] << 7) | queue_message->buffer[2]);
-        osc_message_data->val_float = this->data_handler->makeValueFLoat(osc_message_data->unit, osc_message_data->controller, raw_int_value);
-        osc_message_data->format    = "f";
-        osc_message_data->path      = this->data_handler->getPathForController(osc_message_data->unit, osc_message_data->controller);
+        int raw_int_value = (int)((queue_message->buffer[3] << 7) | queue_message->buffer[2]);
+        osc_message_data->val_float
+            = this->data_handler->makeValueFLoat(osc_message_data->unit, osc_message_data->controller, raw_int_value);
+        osc_message_data->format = "f";
+        osc_message_data->path   = this->data_handler->getPathForController(osc_message_data->unit, osc_message_data->controller);
     } break;
     case OSC_MESSAGE_TYPE_PRESET_SAVE: {
         osc_message_data->format = "s";

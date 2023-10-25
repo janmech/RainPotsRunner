@@ -43,7 +43,7 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
                     int         raw_int_value = (int)((msg->buffer[3] << 7) | msg->buffer[2]);
                     float       float_value   = this->makeValueFLoat(unit, controller, raw_int_value);
 
-                    // Depending on the power supply situation the RainPots knobs can fluctiate. 
+                    // Depending on the power supply situation the RainPots knobs can fluctiate.
                     // Let's put a margin for the indicator leds so they dont flicker too much.
                     if (this->last_sent_ctl_values.find(value_id) != this->last_sent_ctl_values.end()) {
                         if (std::abs(this->last_sent_ctl_values[value_id] - float_value) < 0.03) {

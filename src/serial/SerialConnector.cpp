@@ -12,23 +12,67 @@ void SerialConnector::threadLoop()
     bool    is_parsing       = false;
     int     msg_type         = OSC_MESSAGE_TYPE_NONE;
 
-    int fd = open(SERIAL_PORT_PATH, O_RDWR | O_NDELAY);
-
-    tcgetattr(fd, &options);
-
-    cfmakeraw(&options);
-    cfsetospeed(&options, B230400);
-    options.c_cc[VMIN]  = 2;
-    options.c_cc[VTIME] = 1;
-    options.c_cflag &= ~CRTSCTS;
-    tcflush(fd, TCIOFLUSH);
-    tcsetattr(fd, TCSANOW, &options);
-
-    if (tcsetattr(fd, TCSANOW, &options) == -1) {
-        std::cout << "tcsetattr failed" << std::endl;
+    int fd = open(SERIAL_PORT_PATH, O_RDWR);
+    if (fd < 0) {
+        std::cerr << "Error opening serial port " << SERIAL_PORT_PATH << std::endl;
         this->keep_running = false;
     }
-    tcflush(fd, TCIOFLUSH); // Clear IO buffer
+    // Create new termios struct, we call it 'tty' for convention
+    struct termios2 tty;
+
+    // Read in existing settings, and handle any error
+    fixioctl::ioctl(fd, TCGETS2, &tty);
+
+    tty.c_cflag &= ~PARENB;        // Clear parity bit, disabling parity (most common)
+    tty.c_cflag &= ~CSTOPB;        // Clear stop field, only one stop bit used in communication (most common)
+    tty.c_cflag &= ~CSIZE;         // Clear all bits that set the data size
+    tty.c_cflag |= CS8;            // 8 bits per byte (most common)
+    tty.c_cflag &= ~CRTSCTS;       // Disable RTS/CTS hardware flow control (most common)
+    tty.c_cflag |= CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
+
+    tty.c_lflag &= ~ICANON;
+    tty.c_lflag &= ~ECHO;                                                        // Disable echo
+    tty.c_lflag &= ~ECHOE;                                                       // Disable erasure
+    tty.c_lflag &= ~ECHONL;                                                      // Disable new-line echo
+    tty.c_lflag &= ~ISIG;                                                        // Disable interpretation of INTR, QUIT and SUSP
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY);                                      // Turn off s/w flow ctrl
+    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL); // Disable any special handling of received bytes
+
+    tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
+    tty.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
+    // tty.c_oflag &= ~OXTABS; // Prevent conversion of tabs to spaces (NOT PRESENT ON LINUX)
+    // tty.c_oflag &= ~ONOEOT; // Prevent removal of C-d chars (0x004) in output (NOT PRESENT ON LINUX)
+
+    tty.c_cc[VTIME] = 10; // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
+    tty.c_cc[VMIN]  = 0;
+
+    tty.c_cflag &= ~CBAUD;
+    tty.c_cflag |= CBAUDEX;
+    tty.c_ispeed = 380400; // What a custom baud rate!
+    tty.c_ospeed = 380400;
+
+    // tty.c_ispeed = 230400; // What a custom baud rate!
+    // tty.c_ospeed = 230400;
+
+    fixioctl::ioctl(fd, TCSETS2, &tty);
+
+    // int fd = open(SERIAL_PORT_PATH, O_RDWR | O_NDELAY);
+
+    // tcgetattr(fd, &options);
+
+    // cfmakeraw(&options);
+    // cfsetospeed(&options, B230400);
+    // options.c_cc[VMIN]  = 2;
+    // options.c_cc[VTIME] = 1;
+    // options.c_cflag &= ~CRTSCTS;
+    // tcflush(fd, TCIOFLUSH);
+    // tcsetattr(fd, TCSANOW, &options);
+
+    // if (tcsetattr(fd, TCSANOW, &options) == -1) {
+    //     std::cout << "tcsetattr failed" << std::endl;
+    //     this->keep_running = false;
+    // }
+    // tcflush(fd, TCIOFLUSH); // Clear IO buffer
 
     memset(serial_in_buffer, 0, SERIAL_IN_BUFFER_LEN);
     memset(msg_packet_buffer, 0, MSG_BUFFER_SIZE);

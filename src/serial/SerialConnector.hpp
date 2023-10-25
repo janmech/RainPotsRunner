@@ -1,3 +1,6 @@
+// Serial connection is working thanks to this wonderful blog post:
+// https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/
+
 #ifndef __SERIAL_CONNECTOR__
 #define __SERIAL_CONNECTOR__
 #ifdef __cplusplus
@@ -6,19 +9,27 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "../TheadClass/ThreadClass.h"
-#include "../bash_colors.hpp"
-#include "../data/DataHandler.hpp"
-#include "../data/TSQueue.hpp"
-#include "../osc/OscSender.hpp"
-#include "../rainpot_types.hpp"
 #include <cstring>
 #include <errno.h>
 #include <fcntl.h>
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <termios.h>
+// Linux headers
+#include <asm/termios.h> // Contains POSIX terminal control definitions
+#include <errno.h> // Error integer and strerror() function
+#include <fcntl.h> // Contains file controls like O_RDWR
+#include <unistd.h> // write(), read(), close()
+namespace fixioctl {
+#include <sys/ioctl.h>
+}
+
+#include "../TheadClass/ThreadClass.h"
+#include "../bash_colors.hpp"
+#include "../data/DataHandler.hpp"
+#include "../data/TSQueue.hpp"
+#include "../osc/OscSender.hpp"
+#include "../rainpot_types.hpp"
 
 #define SERIAL_PORT_PATH     "/dev/ttyS0"
 #define SERIAL_IN_BUFFER_LEN 100

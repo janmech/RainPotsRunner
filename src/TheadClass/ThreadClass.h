@@ -34,10 +34,7 @@ public:
     }
 
     /** Returns true if the thread was successfully started, false if there was an error starting the thread */
-    bool start()
-    {
-        return (pthread_create(&_thread, NULL, InternalThreadFunc, this) == 0);
-    }
+    bool start() { return (pthread_create(&_thread, NULL, InternalThreadFunc, this) == 0); }
 
     void stop()
     {
@@ -46,10 +43,7 @@ public:
     }
 
     /** Will not return until the internal thread has exited. */
-    void WaitForInternalThreadToExit()
-    {
-        (void)pthread_join(_thread, NULL);
-    }
+    void WaitForInternalThreadToExit() { (void)pthread_join(_thread, NULL); }
 
 protected:
     virtual void threadLoop() = 0;

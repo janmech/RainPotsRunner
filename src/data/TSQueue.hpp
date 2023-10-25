@@ -6,8 +6,7 @@
 #include <queue>
 
 // Thread-safe queue
-template <typename T>
-class TSQueue {
+template <typename T> class TSQueue {
 private:
     std::queue<T>           m_queue;
     std::mutex              m_mutex;
@@ -41,8 +40,7 @@ public:
         std::unique_lock<std::mutex> lock(m_mutex);
 
         // wait until queue is not empty
-        m_cond.wait(lock,
-            [this]() { return !m_queue.empty(); });
+        m_cond.wait(lock, [this]() { return !m_queue.empty(); });
 
         T item = m_queue.front();
         m_queue.pop();

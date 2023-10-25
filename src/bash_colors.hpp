@@ -9,7 +9,6 @@
 #define BACO_CYAN    "\033[36m"
 #define BACO_WHITE   "\033[37m"
 #define BACO_GRAY    "\033[90m"
-
-#define BACO_END "\033[0m"
+#define BACO_END     "\033[0m"
 
 #endif
