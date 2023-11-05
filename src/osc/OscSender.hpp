@@ -31,9 +31,15 @@ public:
     ~OscSender()
     { /* empty */
     }
-    void addRNBOListenter();
-    void addToMessageQueue(queue_entry_message_t* message);
-    void sendMessage(const char* address, const char* format, ...);
+    void      addRNBOListenter();
+    void      addToMessageQueue(queue_entry_message_t* message);
+    void      sendMessage(const char* address, const char* format, ...);
+    pthread_t getThreadId() { return pthread_self(); }
+    void      crash()
+    {
+        int* foo = NULL;
+        printf("%d", *foo);
+    }
 
 protected:
     bool                               debug = false;

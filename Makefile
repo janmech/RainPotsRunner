@@ -1,6 +1,6 @@
 CC = g++
 # CC = gcc
-CFLAGGS = -g -pthread -lstdc++ -ljsoncpp -lcurl
+CFLAGGS = -g -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
 
 #€-lwiringPi
 #-Werror
@@ -8,12 +8,12 @@ CFLAGGS = -g -pthread -lstdc++ -ljsoncpp -lcurl
 BUILD_PATH= build/
 
 SOURCE_PATH= src src/*  src/*/* src/*/*  tinyosc
-
 TARGET = main
+OUTNAME = rainpots
 # TARGET = serial-test
-
 # TARGET = json_test
-
+# TARGET = stacktraceteest
+# OUTNAME = $(TARGET)
 
 SRCS = $(wildcard $(foreach fd, $(SOURCE_PATH), $(fd)/*.c))
 SRCS_CPP = $(wildcard $(foreach fd, $(SOURCE_PATH), $(fd)/*.cpp))
@@ -37,7 +37,7 @@ $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo $(SRCS_CPP)
 	@echo "\n***************************\n"
 	# $(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$@ 
-	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)rainpots
+	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$(OUTNAME)
 	@echo "\n"
 
 install:

@@ -23,6 +23,15 @@ extern "C" {
 #include "src/osc/OscSender.hpp"
 #include "src/serial/SerialConnector.hpp"
 #include <iostream>
+
+#include <execinfo.h>
+#include <sys/wait.h>
+#include <sys/prctl.h>
+
 #endif
+
+void handle_sigint();
+void print_trace_gdb();
+void handler_sigsev(int sig);
 
 #endif //__MAIN_PROGRAMM__
