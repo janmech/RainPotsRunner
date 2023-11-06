@@ -78,7 +78,7 @@ void OscListener::threadLoop()
                     }
 
                     if (address == "/rnbo/inst/0/name" && this->patcher_load_received) {
-                        /* When loading immediatle the presets don show up. Give  RNBO time to finish writing the config file*/
+                        /* When loading immediatle the presets don't show up. Give  RNBO time to finish writing the config file*/
                         // TODO: See if there is a more solid solution. This might fail patches with a lot of params. Maybe ask Alex
                         // Normann.
                         usleep(200 * 1000);
@@ -89,7 +89,7 @@ void OscListener::threadLoop()
                         }
                     }
 
-                    if (address == "/rnbo/inst/0/presets/load") {
+                    if (address == "/rnbo/inst/0/presets/loaded") {
 
                         std::string preset_name = std::string(tosc_getNextString(&osc));
 
@@ -131,7 +131,7 @@ void OscListener::threadLoop()
 
                         } catch (...) {
                             if (this->debug) {
-                                std::cout << BACO_RED << "Loaded preset name cannot be tranlated to a number" << BACO_END << std::endl;
+                                std::cerr << BACO_RED << "Loaded preset name cannot be tranlated to a number" << BACO_END << std::endl;
                             }
                         }
 
