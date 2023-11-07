@@ -15,7 +15,9 @@ int main(int argc, char* argv[])
     signal(SIGSEGV, handler_sigsev);
 
     pid_t pid = getpid();
-    std::cout << BACO_YELLO << "Started main thread: " << pid << BACO_END << std::endl;
+    if (debug) {
+        std::cout << BACO_YELLO << "Started main thread: " << pid << BACO_END << std::endl;
+    }
 
     DataHandler data_handler(debug);
     ptr_data_handler = &data_handler;

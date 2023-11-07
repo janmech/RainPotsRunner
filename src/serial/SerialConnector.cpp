@@ -51,28 +51,7 @@ void SerialConnector::threadLoop()
     tty.c_ispeed = 380400; // What a custom baud rate!
     tty.c_ospeed = 380400;
 
-    // tty.c_ispeed = 230400; // What a custom baud rate!
-    // tty.c_ospeed = 230400;
-
     fixioctl::ioctl(fd, TCSETS2, &tty);
-
-    // int fd = open(SERIAL_PORT_PATH, O_RDWR | O_NDELAY);
-
-    // tcgetattr(fd, &options);
-
-    // cfmakeraw(&options);
-    // cfsetospeed(&options, B230400);
-    // options.c_cc[VMIN]  = 2;
-    // options.c_cc[VTIME] = 1;
-    // options.c_cflag &= ~CRTSCTS;
-    // tcflush(fd, TCIOFLUSH);
-    // tcsetattr(fd, TCSANOW, &options);
-
-    // if (tcsetattr(fd, TCSANOW, &options) == -1) {
-    //     std::cout << "tcsetattr failed" << std::endl;
-    //     this->keep_running = false;
-    // }
-    // tcflush(fd, TCIOFLUSH); // Clear IO buffer
 
     memset(serial_in_buffer, 0, SERIAL_IN_BUFFER_LEN);
     memset(msg_packet_buffer, 0, MSG_BUFFER_SIZE);
@@ -149,20 +128,17 @@ void SerialConnector::threadLoop()
                         char pickup_msg_buffer[]    = { 0x00, 0x00, 0x00 };
                         pick_up_message.buffer      = pickup_msg_buffer;
                         pick_up_message.buffer_size = 3;
-
-                        int pick_up_action = this->data_handler->makeValuePickupMessasge(&msg, &pick_up_message);
-                        if (pick_up_action == PICK_UP_NONE) {
+                        int pick_up_action          = this->data_handler->makeValuePickupMessasge(&msg, &pick_up_message);
+                        this->addToMessageQueue(&pick_up_message);
+                        
+                        if (pick_up_action == PICK_UP_LOCKED) {
                             this->osc_sender->addToMessageQueue(&msg);
                         } else {
-                            this->addToMessageQueue(&pick_up_message);
-                            if (pick_up_action == PICK_UP_LOCKED) {
-                                this->osc_sender->addToMessageQueue(&msg);
-                            } else {
-                                if (this->debug) {
-                                    std::cout << BACO_YELLO << "Param neads to be picked up..." << BACO_END << std::endl;
-                                }
+                            if (this->debug) {
+                                std::cout << BACO_YELLO << "Param neads to be picked up..." << BACO_END << std::endl;
                             }
                         }
+
                     } else {
                         this->osc_sender->addToMessageQueue(&msg);
                     }

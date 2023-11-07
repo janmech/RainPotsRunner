@@ -26,7 +26,7 @@ preset_index_map_t DataHandler::getPresets(bool force_load)
 
 int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queue_entry_t* serial_queue_entry)
 {
-    int pick_up_action = PICK_UP_NONE;
+    int pick_up_action = PICK_UP_LOCKED;
 
     if (msg->type == OSC_MESSAGE_TYPE_CC && msg->buffer_size >= 4) {
 
@@ -36,7 +36,6 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
             if (this->contollerIsAssigned(unit, controller)) {
                 std::string path = this->getPathForController(unit, controller);
                 if (this->path_values.find(path) != this->path_values.end()) {
-
                     std::string key_unit      = std::to_string(unit);
                     std::string key_ctl       = std::to_string(controller);
                     std::string value_id      = key_unit + " " + key_ctl;
@@ -46,11 +45,7 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
                     // Depending on the power supply situation the RainPots knobs can fluctiate.
                     // Let's put a margin for the indicator leds so they dont flicker too much.
                     if (this->last_sent_ctl_values.find(value_id) != this->last_sent_ctl_values.end()) {
-                        if (std::abs(this->last_sent_ctl_values[value_id] - float_value) < 0.03) {
-                            return pick_up_action;
-                        } else {
-                            this->last_sent_ctl_values[value_id] = float_value;
-                        }
+                        this->last_sent_ctl_values[value_id] = float_value;
                     } else {
                         this->last_sent_ctl_values.insert(std::make_pair(value_id, float_value));
                     }
@@ -63,7 +58,7 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
                         // is the current value hieger or lower than the loaded one?
 
                         float diff = float_value - ctl_state.value;
-                        if (std::abs(diff) > 0.03f) {
+                        if (std::abs(diff) > 0.01f) {
                             pick_up_action = (diff > 0) ? PICK_UP_TURN_DOWN : PICK_UP_TURN_UP;
                         } else {
                             pick_up_action = PICK_UP_LOCKED;
@@ -272,13 +267,13 @@ void DataHandler::printPathValues()
 
     std::cout << BACO_GRAY << "<-> Param States by Path:" << BACO_END;
     std::cout << BACO_GRAY << std::endl
-              << this->rightPad("Path", 50) << this->leftPad("Value", 8) << this->leftPad("Loaded", 8) << this->leftPad("Locked", 8)
+              << this->rightPad("Path", 70) << this->leftPad("Value", 8) << this->leftPad("Loaded", 8) << this->leftPad("Locked", 8)
               << BACO_END << std::endl;
     while (pv_iterator != pv_map.end()) {
         std::string  path  = pv_iterator->first;
         path_value_t value = pv_iterator->second;
 
-        std::cout << BACO_GRAY << this->rightPad(path, 50) << "" << std::setw(8) << value.value << "" << std::setw(8) << value.loaded
+        std::cout << BACO_GRAY << this->rightPad(path, 70) << "" << std::setw(8) << value.value << "" << std::setw(8) << value.loaded
                   << "" << std::setw(8) << value.locked << BACO_END << std::endl;
         pv_iterator++;
     }

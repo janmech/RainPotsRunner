@@ -64,8 +64,8 @@ void OscListener::threadLoop()
                         float meter_value = tosc_getNextFloat(&osc) * 255.;
 
                         char msg_buffer[4] = { 0xF0, // Start Condition - by convetion RainPotMeterModule is always at index 0
-                            0xE6,                    // Remote Message: Set Meter
-                            (char)meter_index, (char)meter_value };
+                                               0xE6, // Remote Message: Set Meter
+                                               (char)meter_index, (char)meter_value };
 
                         serial_queue_entry_t serial_queue_entry;
                         serial_queue_entry.buffer      = msg_buffer;
@@ -89,9 +89,34 @@ void OscListener::threadLoop()
                         }
                     }
 
+                    if (address == "/rnbo/inst/0/presets/load") {
+
+                        if (this->debug) {
+                            std::cout << BACO_GRAY "<-> Start loading params" << BACO_END << std::endl << std::endl;
+                        }
+
+                        this->data_handler->clearPathValues();
+                        this->data_handler->setCollectValues(true);
+                    }
+
                     if (address == "/rnbo/inst/0/presets/loaded") {
 
                         std::string preset_name = std::string(tosc_getNextString(&osc));
+
+                        if (this->debug) {
+                            std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
+                        }
+                        this->data_handler->setCollectValues(false);
+                        if (this->debug) {
+                            this->data_handler->printPathValues();
+                        }
+                        std::map<int, serial_queue_entry_t>           ser_messages = this->data_handler->makeSetButtonValueMessages();
+                        std::map<int, serial_queue_entry_t>::iterator ser_msg_iterator = ser_messages.begin();
+
+                        while (ser_msg_iterator != ser_messages.end()) {
+                            this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
+                            ser_msg_iterator++;
+                        }
 
                         try {
                             std::string::size_type sz;
@@ -133,30 +158,6 @@ void OscListener::threadLoop()
                             if (this->debug) {
                                 std::cerr << BACO_RED << "Loaded preset name cannot be tranlated to a number" << BACO_END << std::endl;
                             }
-                        }
-
-                        if (this->debug) {
-                            std::cout << BACO_GRAY "<-> Start loading params" << BACO_END << std::endl << std::endl;
-                        }
-
-                        this->data_handler->clearPathValues();
-                        this->data_handler->setCollectValues(true);
-                    }
-
-                    if (address == "/rnbo/inst/0/presets/loaded") {
-                        if (this->debug) {
-                            std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
-                        }
-                        this->data_handler->setCollectValues(false);
-                        if (this->debug) {
-                            this->data_handler->printPathValues();
-                        }
-                        std::map<int, serial_queue_entry_t>           ser_messages = this->data_handler->makeSetButtonValueMessages();
-                        std::map<int, serial_queue_entry_t>::iterator ser_msg_iterator = ser_messages.begin();
-
-                        while (ser_msg_iterator != ser_messages.end()) {
-                            this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
-                            ser_msg_iterator++;
                         }
                     }
 
