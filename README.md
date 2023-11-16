@@ -6,9 +6,9 @@
 sudo raspi-config : Serialport
 
 ### 2. Install Depencencies: 
-sudo apt-get install libjsoncpp-dev  
-sudo apt-get install curl  
-sudo apt-get install  libcurl4-openssl-dev  
+`sudo apt-get install libjsoncpp-dev`   
+`sudo apt-get install curl`  
+`sudo apt-get install  libcurl4-openssl-dev`    
 
 ### 3. Clone Repo and Build
 `cd ~/Documents`  
