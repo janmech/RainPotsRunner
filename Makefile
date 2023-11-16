@@ -54,6 +54,8 @@ $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo "\n"
 
 install:
+	@if [ ! -d "/home/pi/Documents/rainpots" ]; then mkdir /home/pi/Documents/rainpots; fi
+	@if [ ! -d "/home/pi/Documents/rainpots/log" ];then mkdir /home/pi/Documents/rainpots/log; fi
 	sudo cp ./$(BUILD_PATH)rainpots /usr/bin
 
 
