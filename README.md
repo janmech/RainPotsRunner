@@ -1,5 +1,7 @@
 # RainPotsRunner
 
+For RNBO 1.2.3
+
 ## Setting up
 
 ### 1. Configure Serial Port
