@@ -22,11 +22,13 @@ extern "C" {
 #include "src/osc/OscListener.hpp"
 #include "src/osc/OscSender.hpp"
 #include "src/serial/SerialConnector.hpp"
+#include "src/serial/SerialSender.hpp"
 #include <iostream>
+#include <string>
 
 #include <execinfo.h>
-#include <sys/wait.h>
 #include <sys/prctl.h>
+#include <sys/wait.h>
 
 #endif
 

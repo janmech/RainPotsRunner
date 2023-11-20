@@ -5,6 +5,7 @@ void OscListener::threadLoop()
     char      buffer[2048];
     const int fd = socket(AF_INET, SOCK_DGRAM, 0);
     fcntl(fd, F_SETFL, O_NONBLOCK); // set the socket to non-blocking
+    // fcntl(fd, F_SETFL); // set the socket to non-blocking
     struct sockaddr_in sin;
     sin.sin_family      = AF_INET;
     sin.sin_port        = htons(5555);
@@ -171,7 +172,7 @@ void OscListener::threadLoop()
                 }
             }
         }
-        usleep(THREAD_LOOP_SLEEP_US);
+        // usleep(THREAD_LOOP_SLEEP_US);
     }
 
     // close the UDP socket

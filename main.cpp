@@ -1,12 +1,15 @@
 #include "main.hpp"
 
-#include <string>
-
-bool             running = true;
-OscSender*       ptr_osc_sender;
-OscListener*     ptr_osc_listener;
-DataHandler*     ptr_data_handler;
-SerialConnector* ptr_serial_connector; // foo
+bool             running                 = true;
+OscSender*       ptr_osc_sender          = NULL;
+OscListener*     ptr_osc_listener        = NULL;
+DataHandler*     ptr_data_handler        = NULL;
+SerialConnector* ptr_serial_connector    = NULL;
+SerialSender*    ptr_serial_sender       = NULL;
+pthread_t*       thread_serial_sender    = NULL;
+pthread_t*       thread_serial_connector = NULL;
+pthread_t*       thread_osc_sender       = NULL;
+pthread_t*       thread_osc_listener     = NULL;
 
 int main(int argc, char* argv[])
 {
@@ -27,20 +30,36 @@ int main(int argc, char* argv[])
     }
 
     OscSender osc_sender(&data_handler, debug);
-    ptr_osc_sender = &osc_sender;
-    osc_sender.start();
+    ptr_osc_sender    = &osc_sender;
+    thread_osc_sender = osc_sender.start();
 
     SerialConnector serial_connector(&osc_sender, &data_handler, debug);
     ptr_serial_connector = &serial_connector;
 
+    SerialSender serial_sender(debug);
+    ptr_serial_sender = &serial_sender;
+
     OscListener osc_listener(&data_handler, &serial_connector, debug);
-    ptr_osc_listener = &osc_listener;
-    osc_listener.start();
+    ptr_osc_listener    = &osc_listener;
+    thread_osc_listener = osc_listener.start();
 
     /* ---------------------------------------------------- */
     /* -- Runs in main thread, therefore MUST start last -- */
     /* ---------------------------------------------------- */
-    serial_connector.start();
+    thread_serial_connector = serial_connector.start();
+
+    while (serial_connector.getFileDescriptor() == NULL) {
+        usleep(200 * 1000);
+        if (debug) {
+            std::cout << BACO_YELLO << "SerialConnector Waiting for serial file descriptor..." << std::endl;
+        }
+    }
+    if (debug) {
+        std::cout << BACO_YELLO << "SerialConnector got file descriptor" << std::endl;
+    }
+    serial_sender.setFileDescriptor(serial_connector.getFileDescriptor());
+    serial_sender.setMessageQueue(serial_connector.getMessageQueue());
+    thread_serial_sender = serial_sender.start();
 
     while (running) {
         sleep(5);
@@ -75,9 +94,21 @@ void handle_sigint()
     pid_t pid = getpid();
     std::cout << std::endl << BACO_YELLO << "Terminating main thread: " << pid << BACO_END << std::endl;
     running = false;
-    ptr_osc_sender->stop();
-    ptr_osc_listener->stop();
-    ptr_serial_connector->stop();
+    if (ptr_osc_sender != NULL) {
+        pthread_kill(*thread_osc_sender, SIGKILL);
+        // ptr_osc_sender->stop();
+    }
+    if (ptr_osc_listener != NULL) {
+        pthread_kill(*thread_osc_listener, SIGKILL);
+        // ptr_osc_listener->stop();
+    }
+    if (ptr_serial_connector != NULL) {
+        pthread_kill(*thread_serial_connector, SIGKILL);
+        // ptr_serial_connector->stop();
+    }
+    if (ptr_serial_sender != NULL) {
+        pthread_kill(*thread_serial_sender, SIGKILL);
+    }
 }
 
 void handler_sigsev(int sig)

@@ -4,49 +4,49 @@ void OscSender::threadLoop()
 {
     this->addRNBOListenter();
     while (this->keep_running) {
-        if (this->ts_message_queue.size() > 0) {
-            queue_entry_message_t* msg = this->ts_message_queue.pop();
-            if (this->debug) {
-                std::cout << BACO_GRAY << "<-> Processing OSC message: " << BACO_END;
-                for (size_t i = 0; i < msg->buffer_size; i++) {
-                    printf("0x%02X ", msg->buffer[i]);
-                }
-                std::cout << std::endl;
+        // if (this->ts_message_queue.size() > 0) {
+        queue_entry_message_t* msg = this->ts_message_queue.pop();
+        if (this->debug) {
+            std::cout << BACO_GRAY << "<-> Processing OSC message: " << BACO_END;
+            for (size_t i = 0; i < msg->buffer_size; i++) {
+                printf("0x%02X ", msg->buffer[i]);
             }
-            msg_osc_t message_data;
-            this->getOscMessageData(msg, &message_data);
-            if (message_data.path != "") {
-                const char* path   = message_data.path.c_str();
-                const char* format = message_data.format.c_str();
-                if (this->debug) {
-                    std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << std::endl
-                              << "\t" << path << std::endl
-                              << "\t" << format << std::endl;
-                    if (format[0] == 'f') {
-                        std::cout << "\t" << message_data.val_float << std::endl;
-                    } else if (format[0] == 's') {
-                        std::cout << "\t" << message_data.val_string << std::endl;
-                    } else {
-                        std::cout << "\t usupported format:" << format << std::endl;
-                    }
+            std::cout << std::endl;
+        }
+        msg_osc_t message_data;
+        this->getOscMessageData(msg, &message_data);
+        if (message_data.path != "") {
+            const char* path   = message_data.path.c_str();
+            const char* format = message_data.format.c_str();
+            if (this->debug) {
+                std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << std::endl
+                          << "\t" << path << std::endl
+                          << "\t" << format << std::endl;
+                if (format[0] == 'f') {
+                    std::cout << "\t" << message_data.val_float << std::endl;
+                } else if (format[0] == 's') {
+                    std::cout << "\t" << message_data.val_string << std::endl;
+                } else {
+                    std::cout << "\t usupported format:" << format << std::endl;
                 }
-                switch (msg->type) {
-                case OSC_MESSAGE_TYPE_CC:
-                    this->sendMessage(path, format, message_data.val_float);
-                    break;
-                case OSC_MESSAGE_TYPE_PRESET_LOAD:
-                case OSC_MESSAGE_TYPE_PRESET_SAVE: {
-                    const char* string_val = message_data.val_string.c_str();
-                    this->sendMessage(path, format, string_val);
-                } break;
+            }
+            switch (msg->type) {
+            case OSC_MESSAGE_TYPE_CC:
+                this->sendMessage(path, format, message_data.val_float);
+                break;
+            case OSC_MESSAGE_TYPE_PRESET_LOAD:
+            case OSC_MESSAGE_TYPE_PRESET_SAVE: {
+                const char* string_val = message_data.val_string.c_str();
+                this->sendMessage(path, format, string_val);
+            } break;
 
-                default:
-                    std::cerr << "OscSender: Invalid mesage type" << std::endl;
-                    break;
-                }
+            default:
+                std::cerr << "OscSender: Invalid mesage type" << std::endl;
+                break;
             }
         }
-        usleep(THREAD_LOOP_SLEEP_US);
+        // }
+        // usleep(THREAD_LOOP_SLEEP_US);
     }
 
     close(this->socket_out);

@@ -12,16 +12,18 @@ void SerialConnector::threadLoop()
     bool    is_parsing       = false;
     int     msg_type         = OSC_MESSAGE_TYPE_NONE;
 
-    int fd = open(SERIAL_PORT_PATH, O_RDWR);
-    if (fd < 0) {
+    this->fd = open(SERIAL_PORT_PATH, O_RDWR);
+    if (this->fd < 0) {
         std::cerr << "Error opening serial port " << SERIAL_PORT_PATH << std::endl;
         this->keep_running = false;
     }
+    this->p_fd = &fd;
+
     // Create new termios struct, we call it 'tty' for convention
     struct termios2 tty;
 
     // Read in existing settings, and handle any error
-    fixioctl::ioctl(fd, TCGETS2, &tty);
+    fixioctl::ioctl(this->fd, TCGETS2, &tty);
 
     tty.c_cflag &= ~PARENB;        // Clear parity bit, disabling parity (most common)
     tty.c_cflag &= ~CSTOPB;        // Clear stop field, only one stop bit used in communication (most common)
@@ -44,21 +46,21 @@ void SerialConnector::threadLoop()
     // tty.c_oflag &= ~ONOEOT; // Prevent removal of C-d chars (0x004) in output (NOT PRESENT ON LINUX)
 
     tty.c_cc[VTIME] = 0; // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
-    tty.c_cc[VMIN]  = 0;
+    tty.c_cc[VMIN]  = 1;
 
     tty.c_cflag &= ~CBAUD;
     tty.c_cflag |= CBAUDEX;
     tty.c_ispeed = 380400; // What a custom baud rate!
     tty.c_ospeed = 380400;
 
-    fixioctl::ioctl(fd, TCSETS2, &tty);
+    fixioctl::ioctl(this->fd, TCSETS2, &tty);
 
     memset(serial_in_buffer, 0, SERIAL_IN_BUFFER_LEN);
     memset(msg_packet_buffer, 0, MSG_BUFFER_SIZE);
 
     while (this->keep_running) {
         // Read incomng data
-        if (int received = read(fd, serial_in_buffer, 1) > 0) {
+        if (int received = read(this->fd, serial_in_buffer, 1) > 0) {
             if (!is_parsing) {
                 // We use an undefiged System Common Messages as a status byte foe 'save', hence there is no channel information
                 if (serial_in_buffer[0] == MSG_SAVE) {
@@ -130,7 +132,7 @@ void SerialConnector::threadLoop()
                         pick_up_message.buffer_size = 3;
                         int pick_up_action          = this->data_handler->makeValuePickupMessasge(&msg, &pick_up_message);
                         this->addToMessageQueue(&pick_up_message);
-                        
+
                         if (pick_up_action == PICK_UP_LOCKED) {
                             this->osc_sender->addToMessageQueue(&msg);
                         } else {
@@ -148,24 +150,24 @@ void SerialConnector::threadLoop()
         };
 
         // Send data from message queue
-        if (this->ts_message_queue.size() > 0) {
-            serial_queue_entry_t* entry = this->ts_message_queue.pop();
+        // if (this->ts_message_queue.size() > 0) {
+        //     serial_queue_entry_t* entry = this->ts_message_queue.pop();
 
-            int bytes_written = write(fd, entry->buffer, entry->buffer_size);
+        //     int bytes_written = write(this->fd, entry->buffer, entry->buffer_size);
 
-            if (this->debug) {
-                std::cout << BACO_MAGENTA << "<-- Sending serial packet: " << BACO_END;
-                std::cout << BACO_GRAY;
-                for (size_t i = 0; i < entry->buffer_size; i++) {
-                    printf("0x%02X ", entry->buffer[i]);
-                }
-                std::cout << BACO_END << std::endl;
-            }
-        }
+        //     if (this->debug) {
+        //         std::cout << BACO_MAGENTA << "<-- Sending serial packet: " << BACO_END;
+        //         std::cout << BACO_GRAY;
+        //         for (size_t i = 0; i < entry->buffer_size; i++) {
+        //             printf("0x%02X ", entry->buffer[i]);
+        //         }
+        //         std::cout << BACO_END << std::endl;
+        //     }
+        // }
 
-        usleep(THREAD_LOOP_SLEEP_US);
+        // usleep(THREAD_LOOP_SLEEP_US);
     }
-    close(fd);
+    close(this->fd);
     if (this->debug) {
         std::cout << "\tSerialConnector: Serial connection closed." << std::endl;
         std::cout << "\tSerialConnector Terminated" << std::endl << std::endl;
@@ -173,3 +175,7 @@ void SerialConnector::threadLoop()
 }
 
 void SerialConnector::addToMessageQueue(serial_queue_entry_t* message) { this->ts_message_queue.push(message); }
+
+int* SerialConnector::getFileDescriptor() { return this->p_fd; }
+
+TSQueue<serial_queue_entry_t*>* SerialConnector::getMessageQueue() { return &this->ts_message_queue; }

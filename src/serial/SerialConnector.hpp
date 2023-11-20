@@ -17,9 +17,9 @@ extern "C" {
 #include <string_view>
 // Linux headers
 #include <asm/termios.h> // Contains POSIX terminal control definitions
-#include <errno.h> // Error integer and strerror() function
-#include <fcntl.h> // Contains file controls like O_RDWR
-#include <unistd.h> // write(), read(), close()
+#include <errno.h>       // Error integer and strerror() function
+#include <fcntl.h>       // Contains file controls like O_RDWR
+#include <unistd.h>      // write(), read(), close()
 namespace fixioctl {
 #include <sys/ioctl.h>
 }
@@ -54,7 +54,9 @@ public:
     ~SerialConnector()
     { /* empty */
     }
-    void addToMessageQueue(serial_queue_entry_t* message);
+    int*                            getFileDescriptor();
+    void                            addToMessageQueue(serial_queue_entry_t* message);
+    TSQueue<serial_queue_entry_t*>* getMessageQueue();
 
 protected:
     TSQueue<serial_queue_entry_t*> ts_message_queue;
@@ -64,6 +66,8 @@ protected:
     void                           threadLoop();
 
 private:
+    int          fd;
+    int*         p_fd = NULL;
     static void* InternalThreadEntryFunc(void* This)
     {
         ((SerialConnector*)This)->threadLoop();
