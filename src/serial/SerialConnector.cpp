@@ -2,7 +2,7 @@
 
 void SerialConnector::threadLoop()
 {
-    struct termios options;
+    // struct termios options;
 
     char    serial_in_buffer[SERIAL_IN_BUFFER_LEN];
     char    msg_packet_buffer[MSG_BUFFER_SIZE];
@@ -60,7 +60,8 @@ void SerialConnector::threadLoop()
 
     while (this->keep_running) {
         // Read incomng data
-        if (int received = read(this->fd, serial_in_buffer, 1) > 0) {
+        // if (int received = read(this->fd, serial_in_buffer, 1) > 0) {
+        if (read(this->fd, serial_in_buffer, 1) > 0) {
             if (!is_parsing) {
                 // We use an undefiged System Common Messages as a status byte foe 'save', hence there is no channel information
                 if (serial_in_buffer[0] == MSG_SAVE) {

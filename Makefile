@@ -1,6 +1,6 @@
 CC = g++
 # CC = gcc
-CFLAGGS = -g -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
+CFLAGGS = -g -Wall -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
 CFLAGGS_OPTIMIZED = -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
 
 #€-lwiringPi
@@ -48,9 +48,8 @@ $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo $(SRCS_CPP_FORMATTED)
 	@echo "\n***************************\n"
 # $(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$@ 
-# $(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$(OUTNAME)
 	$(CC) $^ $(TARGET).cpp $(CFLAGGS_OPTIMIZED) -o $(BUILD_PATH)$(OUTNAME)
-	
+	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$(OUTNAME)-dev
 	@echo "\n"
 
 install:

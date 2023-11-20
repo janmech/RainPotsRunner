@@ -8,7 +8,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "../TheadClass/ThreadClass.h"
+#include "../TheadClass/ThreadClass.hpp"
 #include "../bash_colors.hpp"
 #include "../data/DataHandler.hpp"
 #include "../serial/SerialConnector.hpp"

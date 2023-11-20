@@ -24,7 +24,7 @@ namespace fixioctl {
 #include <sys/ioctl.h>
 }
 
-#include "../TheadClass/ThreadClass.h"
+#include "../TheadClass/ThreadClass.hpp"
 #include "../bash_colors.hpp"
 #include "../data/DataHandler.hpp"
 #include "../data/TSQueue.hpp"

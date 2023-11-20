@@ -8,7 +8,7 @@ void OscSender::threadLoop()
         queue_entry_message_t* msg = this->ts_message_queue.pop();
         if (this->debug) {
             std::cout << BACO_GRAY << "<-> Processing OSC message: " << BACO_END;
-            for (size_t i = 0; i < msg->buffer_size; i++) {
+            for (int i = 0; i < msg->buffer_size; i++) {
                 printf("0x%02X ", msg->buffer[i]);
             }
             std::cout << std::endl;
@@ -130,7 +130,8 @@ int OscSender::openOutSocket()
     out_addr.sin_family = AF_INET;
     out_addr.sin_port   = htons(1234);
     this->addr_out      = out_addr;
-    int res             = inet_pton(AF_INET, "127.0.0.1", &out_addr.sin_addr);
+    // int res             = inet_pton(AF_INET, "127.0.0.1", &out_addr.sin_addr);
+    inet_pton(AF_INET, "127.0.0.1", &out_addr.sin_addr);
 
     bind(this->socket_out, (struct sockaddr*)&this->addr_out, sizeof(struct sockaddr_in));
     return this->socket_out;

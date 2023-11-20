@@ -229,8 +229,8 @@ void DataHandler::clearPathValues()
 {
     path_value_map_t::iterator iterator = this->path_values.begin();
     while (iterator != this->path_values.end()) {
-        std::string  path              = iterator->first;
-        path_value_t path_value        = iterator->second;
+        std::string path = iterator->first;
+        // path_value_t path_value        = iterator->second;
         this->path_values[path].value  = 0.;
         this->path_values[path].loaded = false;
         this->path_values[path].locked = false;
@@ -348,16 +348,17 @@ void DataHandler::loadConfig()
     std::map<int, std::map<int, ctl_settings_t>> config_map;
     std::string                                  rawJson;
     JSONCPP_STRING                               err;
+    CURL*                                        curl;
+    // CURLcode                                     res;
 
-    CURL*    curl;
-    CURLcode res;
     curl = curl_easy_init();
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, "localhost");
         curl_easy_setopt(curl, CURLOPT_PORT, 5678);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, DataHandler::writeCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &rawJson);
-        res = curl_easy_perform(curl);
+        // res = curl_easy_perform(curl);
+        curl_easy_perform(curl);
         curl_easy_cleanup(curl);
     }
     try {
@@ -368,7 +369,7 @@ void DataHandler::loadConfig()
 
         std::vector<std::string> param_names = params.getMemberNames();
 
-        for (int i = 0; i < param_names.size(); i++) {
+        for (uint i = 0; i < param_names.size(); i++) {
             // Member name and value
             Json::Value rainpot_config = params[param_names[i]]["CONTENTS"]["meta"]["CONTENTS"]["rainpots"];
             if (!rainpot_config.isNull()) {
@@ -404,7 +405,7 @@ void DataHandler::loadConfig()
         const Json::Value presets
             = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["presets"]["CONTENTS"]["entries"]["VALUE"];
         preset_index_map_t preset_index_map;
-        for (int preset_index = 0; preset_index < presets.size(); preset_index++) {
+        for (uint preset_index = 0; preset_index < presets.size(); preset_index++) {
             preset_index_map.insert(std::make_pair(presets[preset_index].asString(), preset_index));
         }
         this->presets = preset_index_map;

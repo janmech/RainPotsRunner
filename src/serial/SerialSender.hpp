@@ -8,7 +8,7 @@ extern "C" {
 }
 #endif
 
-#include "../TheadClass/ThreadClass.h"
+#include "../TheadClass/ThreadClass.hpp"
 #include "../bash_colors.hpp"
 #include "../data/TSQueue.hpp"
 #include "../rainpot_types.hpp"
