@@ -1,10 +1,10 @@
 CC = g++
 
 # USE THIS FOR DEV
-# CFLAGGS = -g -Wall -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
+CFLAGGS = -g -Wall -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
 
 # USE THIS FOR PRODUCTION
-CFLAGGS = -Wall -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic  -O1
+# CFLAGGS = -Wall -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic  -O1
 
 BUILD_PATH= build/
 

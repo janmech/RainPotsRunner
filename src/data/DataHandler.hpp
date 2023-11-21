@@ -61,5 +61,10 @@ protected:
     float              clipValue(float x, float min = 0., float max = 1.);
     std::string        rightPad(std::string const& str, int padding);
     std::string        leftPad(std::string const& str, int padding);
+    void               extractParmFromJson(
+                      Json::Value   rainpot_config,     //
+                      config_map_t* ptr_config_map,     //
+                      uint          recursion_depth = 0 //
+                  );
 };
 #endif

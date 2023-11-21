@@ -345,11 +345,11 @@ char DataHandler::formatButtonValue(int unit, int button_index, float raw_value)
 
 void DataHandler::loadConfig()
 {
-    std::map<int, std::map<int, ctl_settings_t>> config_map;
-    std::string                                  rawJson;
-    JSONCPP_STRING                               err;
-    CURL*                                        curl;
-    // CURLcode                                     res;
+    config_map_t   config_map;
+    std::string    rawJson;
+    JSONCPP_STRING err;
+    CURL*          curl;
+    // CURLcode
 
     curl = curl_easy_init();
     if (curl) {
@@ -371,33 +371,36 @@ void DataHandler::loadConfig()
 
         for (uint i = 0; i < param_names.size(); i++) {
             // Member name and value
-            Json::Value rainpot_config = params[param_names[i]]["CONTENTS"]["meta"]["CONTENTS"]["rainpots"];
-            if (!rainpot_config.isNull()) {
-                Json::Value unit            = rainpot_config["CONTENTS"]["unit"]["VALUE"];
-                Json::Value ctl             = rainpot_config["CONTENTS"]["ctl"]["VALUE"];
-                Json::Value center          = rainpot_config["CONTENTS"]["center"]["VALUE"];
-                Json::Value steps           = rainpot_config["CONTENTS"]["steps"]["VALUE"];
-                Json::Value normalized_path = params[param_names[i]]["CONTENTS"]["normalized"]["FULL_PATH"];
+            // Json::Value rainpot_config = params[param_names[i]]["CONTENTS"]["meta"]["CONTENTS"]["rainpots"];
 
-                if (!unit.isNull() && !ctl.isNull()) {
-                    int         value_unit   = unit.asInt();
-                    int         value_ctl    = ctl.asInt();
-                    bool        value_center = (center.isNull()) ? false : center.asBool();
-                    int         value_steps  = (steps.isNull()) ? -1 : steps.asInt();
-                    std::string value_path   = normalized_path.asString();
+            Json::Value param_data_content = params[param_names[i]]["CONTENTS"];
+            this->extractParmFromJson(param_data_content, &config_map);
+            // if (!rainpot_config.isNull()) {
+            //     Json::Value unit            = rainpot_config["CONTENTS"]["unit"]["VALUE"];
+            //     Json::Value ctl             = rainpot_config["CONTENTS"]["ctl"]["VALUE"];
+            //     Json::Value center          = rainpot_config["CONTENTS"]["center"]["VALUE"];
+            //     Json::Value steps           = rainpot_config["CONTENTS"]["steps"]["VALUE"];
+            //     Json::Value normalized_path = params[param_names[i]]["CONTENTS"]["normalized"]["FULL_PATH"];
 
-                    if (config_map.find(value_unit) == config_map.end()) {
-                        config_map.insert(std::make_pair(value_unit, std::map<int, ctl_settings_t>()));
-                    }
-                    ctl_settings_t ctl_settings;
-                    ctl_settings.center = value_center;
-                    ctl_settings.steps  = value_steps;
-                    ctl_settings.path   = value_path;
-                    config_map[value_unit].insert(std::make_pair(value_ctl, ctl_settings));
-                    path_value_t path_value_entry;
-                    this->path_values.insert(std::make_pair(value_path, path_value_entry));
-                }
-            }
+            //     if (!unit.isNull() && !ctl.isNull()) {
+            //         int         value_unit   = unit.asInt();
+            //         int         value_ctl    = ctl.asInt();
+            //         bool        value_center = (center.isNull()) ? false : center.asBool();
+            //         int         value_steps  = (steps.isNull()) ? -1 : steps.asInt();
+            //         std::string value_path   = normalized_path.asString();
+
+            //         if (config_map.find(value_unit) == config_map.end()) {
+            //             config_map.insert(std::make_pair(value_unit, std::map<int, ctl_settings_t>()));
+            //         }
+            //         ctl_settings_t ctl_settings;
+            //         ctl_settings.center = value_center;
+            //         ctl_settings.steps  = value_steps;
+            //         ctl_settings.path   = value_path;
+            //         config_map[value_unit].insert(std::make_pair(value_ctl, ctl_settings));
+            //         path_value_t path_value_entry;
+            //         this->path_values.insert(std::make_pair(value_path, path_value_entry));
+            //     }
+            // }
         }
         this->param_config = config_map;
 
@@ -412,6 +415,67 @@ void DataHandler::loadConfig()
     } catch (...) {
         std::cerr << "JSON parsing error." << std::endl;
         return;
+    }
+}
+
+void DataHandler::extractParmFromJson(
+    Json::Value   param_data_content, //
+    config_map_t* ptr_config_map,     //
+    uint          recursion_depts     //
+)
+{
+
+    // Json::Value param_data_content = params[param_names[i]]["CONTENTS"];
+    // Json::Value rainpot_config =     params[param_names[i]]["CONTENTS"]["meta"]["CONTENTS"]["rainpots"];
+    Json::Value meta_data       = param_data_content["meta"];
+    Json::Value normalized_data = param_data_content["normalized"];
+    Json::Value rainpot_config  = param_data_content["meta"]["CONTENTS"]["rainpots"];
+
+    if (meta_data.isNull() && normalized_data.isNull()) {
+        std::vector<std::string> sub_param_names = param_data_content.getMemberNames();
+        std::cout << "sub_param: ";
+        for (uint i = 0; i < sub_param_names.size(); i++) {
+            std::cout << "\t" << sub_param_names[i] << " -- recursion_depts:" << recursion_depts << std::endl;
+            if (recursion_depts > 10) {
+                std::cout << BACO_RED << "Max Recursion Reched. Aborting." << BACO_END << std::endl;
+                return;
+            }
+            std::cout << param_data_content[sub_param_names[i]]["CONTENTS"] << std::endl;
+            if (!param_data_content[sub_param_names[i]]["CONTENTS"].isNull()) {
+                this->extractParmFromJson(                              //
+                    param_data_content[sub_param_names[i]]["CONTENTS"], //
+                    ptr_config_map,
+                    ++recursion_depts //
+                );
+            }
+        }
+        std::cout << std::endl;
+    } else if (!rainpot_config.isNull()) {
+        Json::Value unit            = rainpot_config["CONTENTS"]["unit"]["VALUE"];
+        Json::Value ctl             = rainpot_config["CONTENTS"]["ctl"]["VALUE"];
+        Json::Value center          = rainpot_config["CONTENTS"]["center"]["VALUE"];
+        Json::Value steps           = rainpot_config["CONTENTS"]["steps"]["VALUE"];
+        Json::Value normalized_path = param_data_content["normalized"]["FULL_PATH"];
+
+        if (!unit.isNull() && !ctl.isNull()) {
+            int         value_unit   = unit.asInt();
+            int         value_ctl    = ctl.asInt();
+            bool        value_center = (center.isNull()) ? false : center.asBool();
+            int         value_steps  = (steps.isNull()) ? -1 : steps.asInt();
+            std::string value_path   = normalized_path.asString();
+
+            if (ptr_config_map->find(value_unit) == ptr_config_map->end()) {
+                ptr_config_map->insert(std::make_pair(value_unit, std::map<int, ctl_settings_t>()));
+            }
+            ctl_settings_t ctl_settings;
+            ctl_settings.center = value_center;
+            ctl_settings.steps  = value_steps;
+            ctl_settings.path   = value_path;
+            ptr_config_map->at(value_unit).insert(std::make_pair(value_ctl, ctl_settings));
+            // config_map[value_unit].insert(std::make_pair(value_ctl, ctl_settings));
+            path_value_t path_value_entry;
+            this->path_values.insert(std::make_pair(value_path, path_value_entry));
+        }
     }
 }
 

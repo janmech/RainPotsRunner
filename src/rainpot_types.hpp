@@ -36,6 +36,7 @@ typedef struct {
 typedef std::map<int, std::map<int, ctl_settings_t>> config_map_t;
 typedef std::map<std::string, path_value_t>          path_value_map_t;
 typedef std::map<std::string, int>                   preset_index_map_t;
+typedef std::map<std::string, float>                 ctl_value_map_t;
 
 typedef struct msg_osc_t {
     int         unit       = 0;
@@ -52,5 +53,4 @@ typedef struct serial_queue_entry_t {
 
 } serial_queue_entry_t;
 
-typedef std::map<std::string, float> ctl_value_map_t;
 #endif
