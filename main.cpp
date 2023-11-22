@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
         }
     }
     if (debug) {
-        std::cout << BACO_YELLO << "SerialConnector got file descriptor" << std::endl;
+        std::cout << BACO_YELLO << "SerialConnector got file descriptor" << BACO_END << std::endl;
     }
     serial_sender.setFileDescriptor(serial_connector.getFileDescriptor());
     serial_sender.setMessageQueue(serial_connector.getMessageQueue());
