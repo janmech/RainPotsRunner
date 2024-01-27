@@ -93,6 +93,8 @@ void OscListener::threadLoop()
                     if (address == "/rnbo/inst/0/presets/load") {
 
                         if (this->debug) {
+                            std::string preset_name = std::string(tosc_getNextString(&osc));
+                            std::cout << BACO_GRAY "<-> Start loading preset: " << preset_name << BACO_END << std::endl << std::endl;
                             std::cout << BACO_GRAY "<-> Start loading params" << BACO_END << std::endl << std::endl;
                         }
 
@@ -105,6 +107,10 @@ void OscListener::threadLoop()
                         std::string preset_name = std::string(tosc_getNextString(&osc));
 
                         if (this->debug) {
+
+                            std::cout << std::endl
+                                      << BACO_GRAY << "<-> Finished loading preset: " << preset_name << BACO_END << std::endl
+                                      << std::endl;
                             std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
                         }
                         this->data_handler->setCollectValues(false);
