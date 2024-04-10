@@ -14,6 +14,11 @@ pthread_t*       thread_osc_listener     = NULL;
 int main(int argc, char* argv[])
 {
     bool debug = (argc == 2 && std::string(argv[1]) == "-d");
+    if((argc == 2 && std::string(argv[1]) == "-v")) {
+        std::cout << "RainPots Runner by Jan Mech" << std::endl;
+        std::cout << "version: " << VERSION << std::endl;
+        return EXIT_SUCCESS;
+    }
     signal(SIGINT, (void (*)(int))handle_sigint);
     signal(SIGSEGV, handler_sigsev);
 
@@ -66,7 +71,7 @@ int main(int argc, char* argv[])
     }
     std::cout << BACO_YELLO << "Main thread terminated!" << BACO_END << std::endl;
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 void print_trace_gdb()

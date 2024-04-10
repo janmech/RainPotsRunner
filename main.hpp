@@ -32,6 +32,8 @@ extern "C" {
 
 #endif
 
+#define  VERSION "1.0 (rp5)"
+
 void handle_sigint();
 void print_trace_gdb();
 void handler_sigsev(int sig);

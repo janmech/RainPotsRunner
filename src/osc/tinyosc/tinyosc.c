@@ -339,10 +339,10 @@ void tosc_printMessage(tosc_message* osc)
             printf(" %d", tosc_getNextInt32(osc));
             break;
         case 'h':
-            printf(" %lld", tosc_getNextInt64(osc));
+            printf(" %ld", tosc_getNextInt64(osc));
             break;
         case 't':
-            printf(" %lld", tosc_getNextTimetag(osc));
+            printf(" %ld", tosc_getNextTimetag(osc));
             break;
         case 's':
             printf(" %s", tosc_getNextString(osc));

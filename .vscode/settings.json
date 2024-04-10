@@ -64,7 +64,9 @@
         "termios.h": "c",
         "termbits.h": "c",
         "ioctls.h": "c",
-        "ioctl.h": "c"
+        "ioctl.h": "c",
+        "numbers": "cpp",
+        "semaphore": "cpp"
     },
     "C_Cpp.clang_format_style": "{ BasedOnStyle: WebKit, AlignConsecutiveAssignments: true, AlignConsecutiveDeclarations: true, AlignConsecutiveMacros: true, ColumnLimit: 135, AlignTrailingComments: true, AlignAfterOpenBracket: AlwaysBreak, InsertNewlineAtEOF: true }"
 }
