@@ -149,24 +149,6 @@ void SerialConnector::threadLoop()
                 msg_type = OSC_MESSAGE_TYPE_NONE;
             }
         };
-
-        // Send data from message queue
-        // if (this->ts_message_queue.size() > 0) {
-        //     serial_queue_entry_t* entry = this->ts_message_queue.pop();
-
-        //     int bytes_written = write(this->fd, entry->buffer, entry->buffer_size);
-
-        //     if (this->debug) {
-        //         std::cout << BACO_MAGENTA << "<-- Sending serial packet: " << BACO_END;
-        //         std::cout << BACO_GRAY;
-        //         for (size_t i = 0; i < entry->buffer_size; i++) {
-        //             printf("0x%02X ", entry->buffer[i]);
-        //         }
-        //         std::cout << BACO_END << std::endl;
-        //     }
-        // }
-
-        // usleep(THREAD_LOOP_SLEEP_US);
     }
     close(this->fd);
     if (this->debug) {

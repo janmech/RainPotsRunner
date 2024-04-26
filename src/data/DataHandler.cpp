@@ -55,10 +55,10 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
                         || !ctl_state.loaded) { // if not loaded we dont have information so just send the new param values
                         pick_up_action = PICK_UP_LOCKED;
                     } else if (ctl_state.loaded) {
-                        // is the current value hieger or lower than the loaded one?
+                        // is the current value higer or lower than the loaded one?
 
                         float diff = float_value - ctl_state.value;
-                        if (std::abs(diff) > 0.01f) {
+                        if (std::abs(diff) > 0.025f) {
                             pick_up_action = (diff > 0) ? PICK_UP_TURN_DOWN : PICK_UP_TURN_UP;
                         } else {
                             pick_up_action = PICK_UP_LOCKED;
@@ -217,7 +217,8 @@ float DataHandler::makeValueFLoat(int unit, int controler, int raw_value)
             }
         }
     }
-
+    //float temp_hack = normalized_value >= 0.99 ? 1. : normalized_value;
+    //return temp_hack;
     return (float)((int)(normalized_value * 1000.)) / 1000.f;
 }
 

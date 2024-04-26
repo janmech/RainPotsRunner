@@ -122,6 +122,7 @@ void OscListener::threadLoop()
 
                         while (ser_msg_iterator != ser_messages.end()) {
                             this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
+                            sleep(0.005);
                             ser_msg_iterator++;
                         }
 
