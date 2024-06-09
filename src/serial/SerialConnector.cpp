@@ -50,8 +50,11 @@ void SerialConnector::threadLoop()
 
     tty.c_cflag &= ~CBAUD;
     tty.c_cflag |= CBAUDEX;
-    tty.c_ispeed = 380400; // What a custom baud rate!
-    tty.c_ospeed = 380400;
+    // tty.c_ispeed = 380400; // What a custom baud rate!
+    // tty.c_ospeed = 380400;
+
+    tty.c_ispeed = 115200; // What a custom baud rate!
+    tty.c_ospeed = 115200;
 
     fixioctl::ioctl(this->fd, TCSETS2, &tty);
 
