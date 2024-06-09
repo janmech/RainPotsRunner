@@ -66,7 +66,6 @@ Save and close
 
 [Install]
   WantedBy=multi-user.target
-  Alias=rainpots
 ```
 Save and exit  
 
