@@ -12,6 +12,7 @@ extern "C" {
 #include "../bash_colors.hpp"
 #include "../data/DataHandler.hpp"
 #include "../serial/SerialConnector.hpp"
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -26,16 +27,19 @@ public:
         this->serial_connector = serial_connector;
     }
 
-    ~OscListener()
-    { /* empty */
-    }
+    ~OscListener() { /* empty */ }
 
 protected:
-    bool             debug                 = false;
-    bool             patcher_load_received = false;
-    DataHandler*     data_handler;
-    SerialConnector* serial_connector;
-    void             threadLoop();
+    bool                                           debug                 = false;
+    bool                                           patcher_load_received = false;
+    DataHandler*                                   data_handler;
+    SerialConnector*                               serial_connector;
+    void                                           threadLoop();
+    void                                           setRainPotsButtons();
+    bool                                           is_preset_loading   = false;
+    std::string                                    loading_preset_name = "";
+    std::chrono::high_resolution_clock::time_point preset_load_start   = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point preset_load_end     = std::chrono::high_resolution_clock::now();
 
 private:
     static void* InternalThreadEntryFunc(void* This)

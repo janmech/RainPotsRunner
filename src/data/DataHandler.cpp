@@ -148,8 +148,8 @@ std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
                     char  rainpot_value    = this->formatButtonValue(unit, ctl_index, normalized_value);
 
                     if (this->debug) {
-                        std::cout << BACO_GRAY << "    ctl:" << ctl_index << " p:" << param_path << " norm. val:" << normalized_value
-                                  << " final val: " << +rainpot_value << BACO_END << std::endl;
+                        std::cout << BACO_GRAY << "    ctl:" << ctl_index << " p:" << param_path << " norm_val:" << normalized_value
+                                  << " final_val: " << +rainpot_value << BACO_END << std::endl;
                     }
 
                     message_buffer[ctl_index + 2] = rainpot_value;
@@ -274,7 +274,7 @@ void DataHandler::printPathValues()
         std::string  path  = pv_iterator->first;
         path_value_t value = pv_iterator->second;
 
-        std::cout << BACO_GRAY << this->rightPad(path, 70) << "" << std::setw(8) << value.value << "" << std::setw(8) << value.loaded
+        std::cout << BACO_GRAY << this->rightPad(path, 70) << "" << std::setw(8) << std::fixed << std::setprecision(6) << value.value << "" << std::setw(8) << value.loaded
                   << "" << std::setw(8) << value.locked << BACO_END << std::endl;
         pv_iterator++;
     }

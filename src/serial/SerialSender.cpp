@@ -10,15 +10,21 @@ void SerialSender::threadLoop()
         serial_queue_entry_t* entry = this->ptr_ts_message_queue->pop();
 
         // int bytes_written = write(*this->p_fd, entry->buffer, entry->buffer_size);
-        write(*this->p_fd, entry->buffer, entry->buffer_size);
 
-        if (this->debug) {
-            std::cout << BACO_MAGENTA << "<-- Sending serial packet: " << BACO_END;
-            std::cout << BACO_GRAY;
-            for (int i = 0; i < entry->buffer_size; i++) {
-                printf("0x%02X ", entry->buffer[i]);
+        // FIXME: This is a work around because sometimes buffersize is negative (uninitialized?). Find real cause and fix it.
+        if (entry->buffer_size > 0) { 
+            write(*this->p_fd, entry->buffer, entry->buffer_size);
+
+            if (this->debug) {
+                std::cout << BACO_MAGENTA << "<-- Sending serial packet: [" << entry->buffer_size << "] " << BACO_END;
+                std::cout << BACO_GRAY;
+                for (int i = 0; i < entry->buffer_size; i++) {
+                    printf("0x%02X ", entry->buffer[i]);
+                }
+                std::cout << BACO_END << std::endl;
             }
-            std::cout << BACO_END << std::endl;
+            // testing limiting package speed. Waiting for 10 ms.
+            usleep(10000);
         }
     }
     if (this->debug) {

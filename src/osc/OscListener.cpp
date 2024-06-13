@@ -11,11 +11,14 @@ void OscListener::threadLoop()
     sin.sin_port        = htons(5555);
     sin.sin_addr.s_addr = INADDR_ANY;
     bind(fd, (struct sockaddr*)&sin, sizeof(struct sockaddr_in));
+
     while (this->keep_running) {
         fd_set readSet;
         FD_ZERO(&readSet);
         FD_SET(fd, &readSet);
-        struct timeval timeout = { 1, 0 }; // select times out after 1 second
+        // struct timeval timeout = { 1, 0 }; // select times out after 1 second
+        struct timeval timeout = { 0, 100000 }; // select times out after 100 ms
+
         if (select(fd + 1, &readSet, NULL, NULL, &timeout) > 0) {
             struct sockaddr sa; // can be safely cast to sockaddr_in
             socklen_t       sa_len = sizeof(struct sockaddr_in);
@@ -91,10 +94,14 @@ void OscListener::threadLoop()
                     }
 
                     if (address == "/rnbo/inst/0/presets/load") {
+                        this->is_preset_loading = true;
+                        this->preset_load_start = std::chrono::high_resolution_clock::now();
 
+                        this->loading_preset_name = std::string(tosc_getNextString(&osc));
                         if (this->debug) {
-                            std::string preset_name = std::string(tosc_getNextString(&osc));
-                            std::cout << BACO_GRAY "<-> Start loading preset: " << preset_name << BACO_END << std::endl << std::endl;
+                            // std::string preset_name = std::string(tosc_getNextString(&osc));
+                            std::cout << BACO_GRAY "<-> Start loading preset: " << this->loading_preset_name << BACO_END << std::endl
+                                      << std::endl;
                             std::cout << BACO_GRAY "<-> Start loading params" << BACO_END << std::endl << std::endl;
                         }
 
@@ -103,69 +110,78 @@ void OscListener::threadLoop()
                     }
 
                     if (address == "/rnbo/inst/0/presets/loaded") {
+                        // TODO: get back to real preset name when RNBO bug is fixed
+                        this->setRainPotsButtons();
 
-                        std::string preset_name = std::string(tosc_getNextString(&osc));
+                        // std::string preset_name = std::string(tosc_getNextString(&osc));
 
-                        if (this->debug) {
+                        // if (this->debug) {
 
-                            std::cout << std::endl
-                                      << BACO_GRAY << "<-> Finished loading preset: " << preset_name << BACO_END << std::endl
-                                      << std::endl;
-                            std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
-                        }
-                        this->data_handler->setCollectValues(false);
-                        if (this->debug) {
-                            this->data_handler->printPathValues();
-                        }
-                        std::map<int, serial_queue_entry_t>           ser_messages = this->data_handler->makeSetButtonValueMessages();
-                        std::map<int, serial_queue_entry_t>::iterator ser_msg_iterator = ser_messages.begin();
+                        //     std::cout << std::endl
+                        //               << BACO_GRAY << "<-> Finished loading preset: " << preset_name << BACO_END << std::endl
+                        //               << std::endl;
+                        //     std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl <<
+                        //     std::endl;
+                        // }
 
-                        while (ser_msg_iterator != ser_messages.end()) {
-                            this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
-                            ser_msg_iterator++;
-                        }
+                        // this->data_handler->setCollectValues(false);
+                        // if (this->debug) {
+                        //     this->data_handler->printPathValues();
+                        // }
+                        // std::map<int, serial_queue_entry_t>           ser_messages =
+                        // this->data_handler->makeSetButtonValueMessages(); std::map<int, serial_queue_entry_t>::iterator
+                        // ser_msg_iterator = ser_messages.begin();
 
-                        try {
-                            std::string::size_type sz;
-                            volatile int           preset_name_mumeric = std::stoi(preset_name, &sz);
-                            preset_name_mumeric                        = (preset_name_mumeric < 0) ? 0 : preset_name_mumeric;
-                            preset_name_mumeric                        = (preset_name_mumeric > 99) ? 99 : preset_name_mumeric;
+                        // while (ser_msg_iterator != ser_messages.end()) {
+                        //     this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
+                        //     ser_msg_iterator++;
+                        // }
 
-                            char index_byte = (char)preset_name_mumeric;
+                        // try {
+                        //     std::string::size_type sz;
+                        //     volatile int           preset_name_mumeric = std::stoi(preset_name, &sz);
+                        //     preset_name_mumeric                        = (preset_name_mumeric < 0) ? 0 : preset_name_mumeric;
+                        //     preset_name_mumeric                        = (preset_name_mumeric > 99) ? 99 : preset_name_mumeric;
 
-                            char* buff_msg_set_preset = new char[4];
-                            buff_msg_set_preset[0]    = (char)0xF0;
-                            buff_msg_set_preset[1]    = (char)0xE8;
-                            buff_msg_set_preset[2]    = index_byte;
-                            buff_msg_set_preset[3]    = (char)0x00;
-                            // For now we set the RainPot Imdicator to "loaded" when loading starts.
-                            // Later if implemente in RNBO we do this in two steps
+                        //     char index_byte = (char)preset_name_mumeric;
 
-                            serial_queue_entry_t msg_set_preset;
-                            msg_set_preset.buffer      = buff_msg_set_preset;
-                            msg_set_preset.buffer_size = 4;
+                        //     char* buff_msg_set_preset = new char[4];
+                        //     buff_msg_set_preset[0]    = (char)0xF0;
+                        //     buff_msg_set_preset[1]    = (char)0xE8;
+                        //     buff_msg_set_preset[2]    = index_byte;
+                        //     buff_msg_set_preset[3]    = (char)0x00;
+                        //     // For now we set the RainPot Imdicator to "loaded" when loading starts.
+                        //     // Later if implemente in RNBO we do this in two steps
 
-                            this->serial_connector->addToMessageQueue(&msg_set_preset);
+                        //     serial_queue_entry_t msg_set_preset;
+                        //     msg_set_preset.buffer      = buff_msg_set_preset;
+                        //     msg_set_preset.buffer_size = 4;
 
-                            char* buff_msg_set_preset_2 = new char[4];
-                            buff_msg_set_preset_2[0]    = (char)0xF0;
-                            buff_msg_set_preset_2[1]    = (char)0xE8;
-                            buff_msg_set_preset_2[2]    = index_byte;
-                            buff_msg_set_preset_2[3]    = (char)0x01;
-                            // For now we set the RainPot Imdicator to "loaded" when loading starts.
-                            // Later if implemente in RNBO we do this in two steps
+                        //     this->serial_connector->addToMessageQueue(&msg_set_preset);
 
-                            serial_queue_entry_t msg_set_preset_2;
-                            msg_set_preset_2.buffer      = buff_msg_set_preset_2;
-                            msg_set_preset_2.buffer_size = 4;
+                        //     char* buff_msg_set_preset_2 = new char[4];
+                        //     buff_msg_set_preset_2[0]    = (char)0xF0;
+                        //     buff_msg_set_preset_2[1]    = (char)0xE8;
+                        //     buff_msg_set_preset_2[2]    = index_byte;
+                        //     buff_msg_set_preset_2[3]    = (char)0x01;
+                        //     // For now we set the RainPot Imdicator to "loaded" when loading starts.
+                        //     // Later if implemente in RNBO we do this in two steps
 
-                            this->serial_connector->addToMessageQueue(&msg_set_preset_2);
+                        //     serial_queue_entry_t msg_set_preset_2;
+                        //     msg_set_preset_2.buffer      = buff_msg_set_preset_2;
+                        //     msg_set_preset_2.buffer_size = 4;
 
-                        } catch (...) {
-                            if (this->debug) {
-                                std::cerr << BACO_RED << "Loaded preset name cannot be tranlated to a number" << BACO_END << std::endl;
-                            }
-                        }
+                        //     this->serial_connector->addToMessageQueue(&msg_set_preset_2);
+
+                        // } catch (...) {
+                        //     if (this->debug) {
+                        //         std::cerr << BACO_RED << "Loaded preset name cannot be tranlated to a number" << BACO_END <<
+                        //         std::endl;
+                        //     }
+                        // }
+                        // this->loading_preset_name = "";
+
+                        // this->is_preset_loading = false;
                     }
 
                     std::string suffix = "normalized";
@@ -178,7 +194,62 @@ void OscListener::threadLoop()
                 }
             }
         }
-        // usleep(THREAD_LOOP_SLEEP_US);
+        if (this->is_preset_loading) {
+            this->preset_load_end = std::chrono::high_resolution_clock::now();
+            auto duration         = std::chrono::duration_cast<std::chrono::milliseconds>(preset_load_end - preset_load_start);
+            if (duration.count() > 300) {
+                if (this->debug) {
+                    std::cout << "Preset Load Timeout: " << duration.count() << " ms" << std::endl;
+                }
+                this->setRainPotsButtons();
+
+                // if (this->debug) {
+
+                //     std::cout << std::endl
+                //               << BACO_GRAY << "<-> Finished loading preset: " << this->loading_preset_name << BACO_END << std::endl
+                //               << std::endl;
+                //     std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
+                // }
+                // this->data_handler->setCollectValues(false);
+                // if (this->debug) {
+                //     this->data_handler->printPathValues();
+                // }
+                // std::map<int, serial_queue_entry_t>           ser_messages     = this->data_handler->makeSetButtonValueMessages();
+                // std::map<int, serial_queue_entry_t>::iterator ser_msg_iterator = ser_messages.begin();
+
+                // while (ser_msg_iterator != ser_messages.end()) {
+                //     this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
+                //     ser_msg_iterator++;
+                // }
+
+                // try {
+                //     std::string::size_type sz;
+                //     volatile int           preset_name_mumeric = std::stoi(this->loading_preset_name, &sz);
+                //     preset_name_mumeric                        = (preset_name_mumeric < 0) ? 0 : preset_name_mumeric;
+                //     preset_name_mumeric                        = (preset_name_mumeric > 99) ? 99 : preset_name_mumeric;
+
+                //     char index_byte = (char)preset_name_mumeric;
+
+                //     char buff_msg_set_preset[4] = { (char)0xF0, (char)0xE8, index_byte, (char)0x00 };
+                //     // For now we set the RainPot Imdicator to "loaded" when loading starts.
+                //     // Later if implemente in RNBO we do this in two steps
+
+                //     serial_queue_entry_t msg_set_preset;
+                //     msg_set_preset.buffer      = buff_msg_set_preset;
+                //     msg_set_preset.buffer_size = 4;
+
+                //     this->serial_connector->addToMessageQueue(&msg_set_preset);
+
+                // } catch (...) {
+                //     if (this->debug) {
+                //         std::cerr << BACO_RED << "Loaded preset name cannot be tranlated to a number" << BACO_END << std::endl;
+                //     }
+                // }
+                // this->loading_preset_name = "";
+
+                // this->is_preset_loading = false;
+            }
+        }
     }
 
     // close the UDP socket
@@ -187,4 +258,53 @@ void OscListener::threadLoop()
         std::cout << "\tOscListener: UDP socket closed" << std::endl;
         std::cout << "\tOscListener Terminated" << std::endl << std::endl;
     }
+}
+
+void OscListener::setRainPotsButtons()
+{
+    if (this->debug) {
+
+        std::cout << std::endl
+                  << BACO_GRAY << "<-> Finished loading preset: " << this->loading_preset_name << BACO_END << std::endl
+                  << std::endl;
+        std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
+    }
+    this->data_handler->setCollectValues(false);
+    if (this->debug) {
+        this->data_handler->printPathValues();
+    }
+    std::map<int, serial_queue_entry_t>           ser_messages     = this->data_handler->makeSetButtonValueMessages();
+    std::map<int, serial_queue_entry_t>::iterator ser_msg_iterator = ser_messages.begin();
+
+    while (ser_msg_iterator != ser_messages.end()) {
+        this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
+        ser_msg_iterator++;
+    }
+
+    try {
+        std::string::size_type sz;
+        volatile int           preset_name_mumeric = std::stoi(this->loading_preset_name, &sz);
+        preset_name_mumeric                        = (preset_name_mumeric < 0) ? 0 : preset_name_mumeric;
+        preset_name_mumeric                        = (preset_name_mumeric > 99) ? 99 : preset_name_mumeric;
+
+        char index_byte = (char)preset_name_mumeric;
+
+        char buff_msg_set_preset[4] = { (char)0xF0, (char)0xE8, index_byte, (char)0x00 };
+        // For now we set the RainPot Imdicator to "loaded" when loading starts.
+        // Later if implemente in RNBO we do this in two steps
+
+        serial_queue_entry_t msg_set_preset;
+        msg_set_preset.buffer      = buff_msg_set_preset;
+        msg_set_preset.buffer_size = 4;
+
+        this->serial_connector->addToMessageQueue(&msg_set_preset);
+
+    } catch (...) {
+        if (this->debug) {
+            std::cerr << BACO_RED << "Loaded preset name cannot be tranlated to a number" << BACO_END << std::endl;
+        }
+    }
+    this->loading_preset_name = "";
+
+    this->is_preset_loading = false;
 }
