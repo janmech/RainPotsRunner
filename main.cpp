@@ -13,18 +13,42 @@ pthread_t*       thread_osc_listener     = NULL;
 
 int main(int argc, char* argv[])
 {
-    bool debug = (argc == 2 && std::string(argv[1]) == "-d");
-    if((argc == 2 && std::string(argv[1]) == "-v")) {
-        std::cout << "RainPots Runner by Jan Mech" << std::endl;
-        std::cout << "version: " << VERSION << std::endl;
-        return EXIT_SUCCESS;
+    int         opt;
+    bool        debug            = false;
+    int         baudraute        = 380400;
+    std::string serial_port_path = SERIAL_PORT_PATH;
+
+    while ((opt = getopt(argc, argv, "db:vs:")) != -1) {
+        // printf("option: %c\n", opt);
+        // printf("value: %s\n", optarg);
+        switch (opt) {
+        case 'v':
+            std::cout << "RainPots Runner by Jan Mech" << std::endl;
+            std::cout << "version: " << VERSION << std::endl;
+            return EXIT_SUCCESS;
+        case 'd':
+            debug = true;
+            break;
+        case 'b':
+            baudraute = std::stoi(optarg);
+            break;
+        case 's':
+            serial_port_path = (std::string)optarg;
+            break;
+            break;
+        case '?':
+            std::cout << "unknown option" << std::endl;
+            return EXIT_FAILURE;
+        }
     }
+
     signal(SIGINT, (void (*)(int))handle_sigint);
     signal(SIGSEGV, handler_sigsev);
 
     pid_t pid = getpid();
     if (debug) {
         std::cout << BACO_YELLO << "Started main thread: " << pid << BACO_END << std::endl;
+        std::cout << BACO_YELLO << "Using serial port: " << serial_port_path <<  " at " << baudraute << " baud" << std::endl;
     }
 
     DataHandler data_handler(debug);
@@ -38,7 +62,7 @@ int main(int argc, char* argv[])
     ptr_osc_sender    = &osc_sender;
     thread_osc_sender = osc_sender.start();
 
-    SerialConnector serial_connector(&osc_sender, &data_handler, debug);
+    SerialConnector serial_connector(&osc_sender, &data_handler, baudraute, serial_port_path, debug);
     ptr_serial_connector = &serial_connector;
 
     SerialSender serial_sender(debug);

@@ -44,23 +44,31 @@ namespace fixioctl {
 
 class SerialConnector : public ThreadClass {
 public:
-    SerialConnector(OscSender* osc_sender, DataHandler* data_handler, bool debug = false)
+    SerialConnector(
+        OscSender*   osc_sender,                     //
+        DataHandler* data_handler,                   //
+        int          baud        = 380400,           //
+        std::string  serial_port = SERIAL_PORT_PATH, //
+        bool         debug       = false             //
+    )
     {
-        this->debug        = debug;
-        this->osc_sender   = osc_sender;
-        this->data_handler = data_handler;
+        this->debug            = debug;
+        this->osc_sender       = osc_sender;
+        this->data_handler     = data_handler;
+        this->baudrate         = baud;
+        this->serial_port_path = serial_port;
     }
 
-    ~SerialConnector()
-    { /* empty */
-    }
+    ~SerialConnector() { /* empty */ }
     int*                            getFileDescriptor();
     void                            addToMessageQueue(serial_queue_entry_t* message);
     TSQueue<serial_queue_entry_t*>* getMessageQueue();
 
 protected:
     TSQueue<serial_queue_entry_t*> ts_message_queue;
-    bool                           debug = false;
+    bool                           debug            = false;
+    int                            baudrate         = 380400;
+    std::string                    serial_port_path = SERIAL_PORT_PATH;
     OscSender*                     osc_sender;
     DataHandler*                   data_handler;
     void                           threadLoop();

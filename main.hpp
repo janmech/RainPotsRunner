@@ -14,6 +14,7 @@ extern "C" {
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #ifdef __cplusplus
 }
@@ -32,7 +33,7 @@ extern "C" {
 
 #endif
 
-#define  VERSION "1.2 (rp5)"
+#define  VERSION "1.2.1-dev (rp5)"
 
 void handle_sigint();
 void print_trace_gdb();

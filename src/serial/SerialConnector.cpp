@@ -12,9 +12,9 @@ void SerialConnector::threadLoop()
     bool    is_parsing       = false;
     int     msg_type         = OSC_MESSAGE_TYPE_NONE;
 
-    this->fd = open(SERIAL_PORT_PATH, O_RDWR);
+    this->fd = open(this->serial_port_path.c_str(), O_RDWR);
     if (this->fd < 0) {
-        std::cerr << "Error opening serial port " << SERIAL_PORT_PATH << std::endl;
+        std::cerr << "Error opening serial port " << this->serial_port_path << std::endl;
         this->keep_running = false;
     }
     this->p_fd = &fd;
@@ -53,8 +53,11 @@ void SerialConnector::threadLoop()
     // tty.c_ispeed = 380400; // What a custom baud rate!
     // tty.c_ospeed = 380400;
 
-    tty.c_ispeed = 115200; // What a custom baud rate!
-    tty.c_ospeed = 115200;
+    // tty.c_ispeed = 115200; // What a custom baud rate!
+    // tty.c_ospeed = 115200;
+
+    tty.c_ispeed = this->baudrate;
+    tty.c_ospeed = this->baudrate;
 
     fixioctl::ioctl(this->fd, TCSETS2, &tty);
 
