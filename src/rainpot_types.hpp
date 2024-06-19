@@ -15,10 +15,14 @@
 #define PICK_UP_TURN_DOWN 1
 #define PICK_UP_LOCKED    2
 
+#define MSG_BUFFER_SIZE 100
+
 typedef struct queue_entry_message_t {
-    uint8_t type        = OSC_MESSAGE_TYPE_NONE;
-    char*   buffer      = NULL;
-    int     buffer_size = 0;
+    uint8_t type                    = OSC_MESSAGE_TYPE_NONE;
+    char    buffer[MSG_BUFFER_SIZE] = {
+        0,
+    };
+    int buffer_size = 0;
 } queue_entry_message_t;
 
 typedef struct {
@@ -48,8 +52,10 @@ typedef struct msg_osc_t {
 } msg_osc_t;
 
 typedef struct serial_queue_entry_t {
-    char* buffer      = NULL;
-    int   buffer_size = 0;
+    char buffer[10] = {
+        0,
+    };
+    int buffer_size = 0;
 
 } serial_queue_entry_t;
 

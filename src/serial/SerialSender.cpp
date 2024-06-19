@@ -9,10 +9,8 @@ void SerialSender::threadLoop()
     while (this->keep_running) {
         serial_queue_entry_t* entry = this->ptr_ts_message_queue->pop();
 
-        // int bytes_written = write(*this->p_fd, entry->buffer, entry->buffer_size);
-
         // FIXME: This is a work around because sometimes buffersize is negative (uninitialized?). Find real cause and fix it.
-        if (entry->buffer_size > 0) { 
+        if (entry->buffer_size > 0) {
             write(*this->p_fd, entry->buffer, entry->buffer_size);
 
             if (this->debug) {
@@ -23,8 +21,6 @@ void SerialSender::threadLoop()
                 }
                 std::cout << BACO_END << std::endl;
             }
-            // testing limiting package speed. Waiting for 10 ms.
-            usleep(10000);
         }
     }
     if (this->debug) {

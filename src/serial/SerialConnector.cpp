@@ -115,7 +115,7 @@ void SerialConnector::threadLoop()
                 is_parsing       = false;
                 queue_entry_message_t msg;
                 msg.type   = msg_type;
-                msg.buffer = msg_packet_buffer;
+                std::copy(std::begin(msg_packet_buffer), std::end(msg_packet_buffer), std::begin(msg.buffer));
                 switch (msg_type) {
                 case OSC_MESSAGE_TYPE_CC:
                     msg.buffer_size = MSG_CC_PACKET_SIZE;
@@ -135,7 +135,8 @@ void SerialConnector::threadLoop()
                         serial_queue_entry_t pick_up_message;
 
                         char pickup_msg_buffer[]    = { 0x00, 0x00, 0x00 };
-                        pick_up_message.buffer      = pickup_msg_buffer;
+                        std::copy(std::begin(pickup_msg_buffer), std::end(pickup_msg_buffer), std::begin(pick_up_message.buffer));
+                        // pick_up_message.buffer      = pickup_msg_buffer;
                         pick_up_message.buffer_size = 3;
                         int pick_up_action          = this->data_handler->makeValuePickupMessasge(&msg, &pick_up_message);
                         this->addToMessageQueue(&pick_up_message);

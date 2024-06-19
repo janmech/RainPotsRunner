@@ -72,7 +72,8 @@ void OscListener::threadLoop()
                                                (char)meter_index, (char)meter_value };
 
                         serial_queue_entry_t serial_queue_entry;
-                        serial_queue_entry.buffer      = msg_buffer;
+                        // serial_queue_entry.buffer      = msg_buffer;
+                        std::copy(std::begin(msg_buffer), std::end(msg_buffer), std::begin(serial_queue_entry.buffer));
                         serial_queue_entry.buffer_size = 4;
                         this->serial_connector->addToMessageQueue(&serial_queue_entry);
                     }
@@ -294,7 +295,9 @@ void OscListener::setRainPotsButtons()
         // Later if implemente in RNBO we do this in two steps
 
         serial_queue_entry_t msg_set_preset;
-        msg_set_preset.buffer      = buff_msg_set_preset;
+        // msg_set_preset.buffer      = buff_msg_set_preset;
+
+        std::copy(std::begin(buff_msg_set_preset), std::end(buff_msg_set_preset), std::begin(msg_set_preset.buffer));
         msg_set_preset.buffer_size = 4;
 
         this->serial_connector->addToMessageQueue(&msg_set_preset);

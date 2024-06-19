@@ -10,7 +10,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/rainpots",
             "args": [
-                "-d"
+                "-d",
+                "-b 115200"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

@@ -4,8 +4,7 @@ void OscSender::threadLoop()
 {
     this->addRNBOListenter();
     while (this->keep_running) {
-        // if (this->ts_message_queue.size() > 0) {
-        queue_entry_message_t* msg = this->ts_message_queue.pop();
+        queue_entry_message_t* msg   = this->ts_message_queue.pop();
         if (this->debug) {
             std::cout << BACO_GRAY << "<-> Processing OSC message: " << BACO_END;
             for (int i = 0; i < msg->buffer_size; i++) {
@@ -45,8 +44,6 @@ void OscSender::threadLoop()
                 break;
             }
         }
-        // }
-        // usleep(THREAD_LOOP_SLEEP_US);
     }
 
     close(this->socket_out);

@@ -115,7 +115,7 @@ std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
         int  unit            = unit_iterator->first;
         char start_condition = 0xF0 | (char)unit;
 
-        char* message_buffer = new char[8];
+        char message_buffer[8];
 
         message_buffer[0] = start_condition;
         message_buffer[1] = (char)0xE5;
@@ -160,7 +160,10 @@ std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
         if (this->debug) {
             std::cout << std::endl;
         }
-        serial_queue_entry.buffer = message_buffer;
+
+        // serial_queue_entry.buffer = message_buffer;
+
+        std::copy(std::begin(message_buffer), std::end(message_buffer), std::begin(serial_queue_entry.buffer));
         serial_messages.insert(std::make_pair(unit, serial_queue_entry));
         unit_iterator++;
     }
