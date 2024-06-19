@@ -94,7 +94,7 @@ void OscListener::threadLoop()
                         }
                     }
 
-                    if (address == "/rnbo/inst/0/presets/load") {
+                    if (address == "/rnbo/inst/0/presets/load" && !this->instance_parsing) {
                         this->is_preset_loading = true;
                         this->preset_load_start = std::chrono::high_resolution_clock::now();
 
@@ -110,7 +110,7 @@ void OscListener::threadLoop()
                         this->data_handler->setCollectValues(true);
                     }
 
-                    if (address == "/rnbo/inst/0/presets/loaded") {
+                    if (address == "/rnbo/inst/0/presets/loaded" && !this->instance_parsing) {
                         // TODO: get back to real preset name when RNBO bug is fixed
                         this->setRainPotsButtons();
                     }

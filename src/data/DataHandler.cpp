@@ -161,8 +161,6 @@ std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
             std::cout << std::endl;
         }
 
-        // serial_queue_entry.buffer = message_buffer;
-
         std::copy(std::begin(message_buffer), std::end(message_buffer), std::begin(serial_queue_entry.buffer));
         serial_messages.insert(std::make_pair(unit, serial_queue_entry));
         unit_iterator++;
@@ -220,8 +218,8 @@ float DataHandler::makeValueFLoat(int unit, int controler, int raw_value)
             }
         }
     }
-    //float temp_hack = normalized_value >= 0.99 ? 1. : normalized_value;
-    //return temp_hack;
+    // float temp_hack = normalized_value >= 0.99 ? 1. : normalized_value;
+    // return temp_hack;
     return (float)((int)(normalized_value * 1000.)) / 1000.f;
 }
 
@@ -277,8 +275,8 @@ void DataHandler::printPathValues()
         std::string  path  = pv_iterator->first;
         path_value_t value = pv_iterator->second;
 
-        std::cout << BACO_GRAY << this->rightPad(path, 70) << "" << std::setw(8) << std::fixed << std::setprecision(6) << value.value << "" << std::setw(8) << value.loaded
-                  << "" << std::setw(8) << value.locked << BACO_END << std::endl;
+        std::cout << BACO_GRAY << this->rightPad(path, 70) << "" << std::setw(8) << std::fixed << std::setprecision(6) << value.value
+                  << "" << std::setw(8) << value.loaded << "" << std::setw(8) << value.locked << BACO_END << std::endl;
         pv_iterator++;
     }
     std::cout << std::endl;
@@ -366,21 +364,42 @@ void DataHandler::loadConfig()
     }
     try {
         Json::Value root = this->parseStringToJSON(rawJson);
-
-        // Parsing Parameters into map
-        Json::Value params = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["params"]["CONTENTS"];
-        Json::Value default_value;
-
-        std::vector<std::string> param_names = params.getMemberNames();
-
-        for (Json::ValueIterator itr = params.begin(); itr != params.end(); itr++) {
-            Json::Value param_data         = params.get(itr.key().asString(), default_value);
-            Json::Value param_data_content = param_data.get("CONTENTS", default_value);
-            if (!param_data_content.isNull()) {
-                this->extractParmFromJson(param_data_content, &config_map);
+        if (this->instance_parsing) {
+            Json::Value instances_root = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"];
+            for (Json::ValueIterator itr = instances_root.begin(); itr != instances_root.end(); itr++) {
+                std::string instance_index = itr.key().asString();
+                int         instance_index_numeric;
+                int         result = sscanf(instance_index.c_str(), "%d", &instance_index_numeric);
+                if (result == 1) {
+                    // Continue iterating into Json
+                    Json::Value instance_data = instances_root[itr.key().asString()]["CONTENTS"]["params"]["CONTENTS"];
+                    if (!instance_data.isNull()) {
+                        for (Json::ValueIterator itr_instance = instance_data.begin(); itr_instance != instance_data.end();
+                             itr_instance++) {
+                            this->extractParmFromJson(instance_data, &config_map);
+                        }
+                    }
+                }
+                std::cout << std::endl;
             }
+            this->param_config = config_map;
+        } else {
+
+            // Parsing Parameters into map
+            Json::Value params = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["params"]["CONTENTS"];
+            Json::Value default_value;
+
+            // std::vector<std::string> param_names = params.getMemberNames();
+
+            for (Json::ValueIterator itr = params.begin(); itr != params.end(); itr++) {
+                Json::Value param_data         = params.get(itr.key().asString(), default_value);
+                Json::Value param_data_content = param_data.get("CONTENTS", default_value);
+                if (!param_data_content.isNull()) {
+                    this->extractParmFromJson(param_data_content, &config_map);
+                }
+            }
+            this->param_config = config_map;
         }
-        this->param_config = config_map;
 
         // Parsing prests into map
         const Json::Value presets
@@ -402,8 +421,6 @@ void DataHandler::extractParmFromJson(
     uint          recursion_depts     //
 )
 {
-    // Json::Value param_data_content = params[param_names[i]]["CONTENTS"];
-    // Json::Value rainpot_config =     params[param_names[i]]["CONTENTS"]["meta"]["CONTENTS"]["rainpots"];
     Json::Value meta_data       = param_data_content["meta"];
     Json::Value normalized_data = param_data_content["normalized"];
     Json::Value rainpot_config  = param_data_content["meta"]["CONTENTS"]["rainpots"];

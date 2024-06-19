@@ -20,17 +20,19 @@ extern "C" {
 
 class OscListener : public ThreadClass {
 public:
-    OscListener(DataHandler* data_handler, SerialConnector* serial_connector, bool debug = false)
+    OscListener(DataHandler* data_handler, SerialConnector* serial_connector, bool debug = false, bool use_instance_paring = false)
     {
         this->debug            = debug;
         this->data_handler     = data_handler;
         this->serial_connector = serial_connector;
+        this->instance_parsing = use_instance_paring;
     }
 
     ~OscListener() { /* empty */ }
 
 protected:
     bool                                           debug                 = false;
+    bool                                           instance_parsing      = false;
     bool                                           patcher_load_received = false;
     DataHandler*                                   data_handler;
     SerialConnector*                               serial_connector;

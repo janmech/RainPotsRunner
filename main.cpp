@@ -16,9 +16,10 @@ int main(int argc, char* argv[])
     int         opt;
     bool        debug            = false;
     int         baudraute        = 380400;
+    bool        instance_parsing = false;
     std::string serial_port_path = SERIAL_PORT_PATH;
 
-    while ((opt = getopt(argc, argv, "db:vs:")) != -1) {
+    while ((opt = getopt(argc, argv, "db:vs:i")) != -1) {
         // printf("option: %c\n", opt);
         // printf("value: %s\n", optarg);
         switch (opt) {
@@ -35,6 +36,8 @@ int main(int argc, char* argv[])
         case 's':
             serial_port_path = (std::string)optarg;
             break;
+        case 'i':
+            instance_parsing = true;
             break;
         case '?':
             std::cout << "unknown option" << std::endl;
@@ -48,10 +51,10 @@ int main(int argc, char* argv[])
     pid_t pid = getpid();
     if (debug) {
         std::cout << BACO_YELLO << "Started main thread: " << pid << BACO_END << std::endl;
-        std::cout << BACO_YELLO << "Using serial port: " << serial_port_path <<  " at " << baudraute << " baud" << std::endl;
+        std::cout << BACO_YELLO << "Using serial port: " << serial_port_path << " at " << baudraute << " baud" << std::endl;
     }
 
-    DataHandler data_handler(debug);
+    DataHandler data_handler(debug, instance_parsing);
     ptr_data_handler = &data_handler;
     data_handler.getParams(true);
     if (debug) {
@@ -68,7 +71,7 @@ int main(int argc, char* argv[])
     SerialSender serial_sender(debug);
     ptr_serial_sender = &serial_sender;
 
-    OscListener osc_listener(&data_handler, &serial_connector, debug);
+    OscListener osc_listener(&data_handler, &serial_connector, debug, instance_parsing);
     ptr_osc_listener    = &osc_listener;
     thread_osc_listener = osc_listener.start();
 
