@@ -38,7 +38,7 @@ void OscListener::threadLoop()
                     tosc_message osc;
                     tosc_parseMessage(&osc, buffer, len);
                     std::string address(tosc_getAddress(&osc));
-                    if (this->debug) {
+                    if (this->debug && address != "/rnbo/jack/info/cpu_load") {
                         std::string format = tosc_getFormat(&osc);
                         std::cout << BACO_CYAN << "--> Incoming OSC message from: " << BACO_GRAY << address << " [" << format << "]"
                                   << BACO_END << std::endl;
