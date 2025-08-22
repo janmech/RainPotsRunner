@@ -43,6 +43,23 @@ void OscListener::threadLoop()
                         std::cout << BACO_CYAN << "--> Incoming OSC message from: " << BACO_GRAY << address << " [" << format << "]"
                                   << BACO_END << std::endl;
                     }
+
+                    //
+                    std::regex  pattern(R"(^/rnbo/inst/(\d+)/(.*))");
+                    std::smatch match;
+                    std::string instance_index   = "";
+                    std::string instance_message = "";
+
+                    if (std::regex_match(address, match, pattern)) {
+                        if (match.size() >= 3) {
+                            instance_index   = match[1];
+                            instance_message = match[2];
+                        }
+                    }
+
+                    // /rnbo/inst/control/unload
+                    // /rnbo/inst/control/load
+
                     if (address == "/rnbo/resp") {
                         std::string response = std::string(tosc_getNextString(&osc));
                         if (this->debug) {
@@ -63,7 +80,7 @@ void OscListener::threadLoop()
                         }
                     }
 
-                    if (address == "/rnbo/inst/0/messages/out/meter") {
+                    if (instance_message == "messages/out/meter") {
                         float meter_index = tosc_getNextFloat(&osc);
                         float meter_value = tosc_getNextFloat(&osc) * 255.;
 
@@ -78,14 +95,17 @@ void OscListener::threadLoop()
                         this->serial_connector->addToMessageQueue(&serial_queue_entry);
                     }
 
-                    if (address == "/rnbo/inst/control/load") {
+                    if (address == "/rnbo/inst/control/load" || address == "/rnbo/inst/control/unload") {
                         this->patcher_load_received = true;
                     }
 
-                    if (address == "/rnbo/inst/0/name" && this->patcher_load_received) {
+                    // if (address == "/rnbo/inst/0/name" && this->patcher_load_received) {
+                    /// rnbo/inst/control/sets/meta
+                    // if (instance_message == "name" && this->patcher_load_received) {
+                    if (address == "/rnbo/inst/control/sets/meta" && this->patcher_load_received) {
                         /* When loading immediatle the presets don't show up. Give  RNBO time to finish writing the config file*/
-                        // TODO: See if there is a more solid solution. This might fail patches with a lot of params. Maybe ask Alex
-                        // Normann.
+                        // TODO: See if there is a more solid solution. This might fail patches with a lot of params. Maybe ask
+                        // Alex Normann.
                         usleep(200 * 1000);
                         this->data_handler->getParams(true);
                         this->patcher_load_received = false;
@@ -94,7 +114,8 @@ void OscListener::threadLoop()
                         }
                     }
 
-                    if (address == "/rnbo/inst/0/presets/load" && !this->instance_parsing) {
+                    // if (address == "/rnbo/inst/0/presets/load" && !this->instance_parsing) {
+                    if (instance_message == "presets/load" && !this->instance_parsing) {
                         this->is_preset_loading = true;
                         this->preset_load_start = std::chrono::high_resolution_clock::now();
 
@@ -110,7 +131,8 @@ void OscListener::threadLoop()
                         this->data_handler->setCollectValues(true);
                     }
 
-                    if (address == "/rnbo/inst/0/presets/loaded" && !this->instance_parsing) {
+                    // if (address == "/rnbo/inst/0/presets/loaded" && !this->instance_parsing) {
+                    if (instance_message == "presets/loaded" && !this->instance_parsing) {
                         // TODO: get back to real preset name when RNBO bug is fixed
                         this->setRainPotsButtons();
                     }
