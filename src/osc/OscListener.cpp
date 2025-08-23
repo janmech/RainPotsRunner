@@ -5,7 +5,6 @@ void OscListener::threadLoop()
     char      buffer[2048];
     const int fd = socket(AF_INET, SOCK_DGRAM, 0);
     fcntl(fd, F_SETFL, O_NONBLOCK); // set the socket to non-blocking
-    // fcntl(fd, F_SETFL); // set the socket to non-blocking
     struct sockaddr_in sin;
     sin.sin_family      = AF_INET;
     sin.sin_port        = htons(5555);
@@ -16,7 +15,6 @@ void OscListener::threadLoop()
         fd_set readSet;
         FD_ZERO(&readSet);
         FD_SET(fd, &readSet);
-        // struct timeval timeout = { 1, 0 }; // select times out after 1 second
         struct timeval timeout = { 0, 100000 }; // select times out after 100 ms
 
         if (select(fd + 1, &readSet, NULL, NULL, &timeout) > 0) {
@@ -56,9 +54,6 @@ void OscListener::threadLoop()
                             instance_message = match[2];
                         }
                     }
-
-                    // /rnbo/inst/control/unload
-                    // /rnbo/inst/control/load
 
                     if (address == "/rnbo/resp") {
                         std::string response = std::string(tosc_getNextString(&osc));
@@ -114,15 +109,17 @@ void OscListener::threadLoop()
                         }
                     }
 
-                    // if (address == "/rnbo/inst/0/presets/load" && !this->instance_parsing) {
-                    if (instance_message == "presets/load" && !this->instance_parsing) {
-                        this->is_preset_loading = true;
-                        this->preset_load_start = std::chrono::high_resolution_clock::now();
-
-                        this->loading_preset_name = std::string(tosc_getNextString(&osc));
+                    if (address == "/rnbo/inst/control/sets/load") {
+                        std::string foo = std::string(tosc_getNextString(&osc));
                         if (this->debug) {
-                            // std::string preset_name = std::string(tosc_getNextString(&osc));
-                            std::cout << BACO_GRAY "<-> Start loading preset: " << this->loading_preset_name << BACO_END << std::endl
+                            std::cout << "\n\n" << "Loading Set/Graph: " << foo << "\n\n" << std::endl;
+                        }
+                    }
+
+                    if (address == "/rnbo/inst/control/sets/presets/load") {
+                        std::string preset_name = std::string(tosc_getNextString(&osc));
+                        if (this->debug) {
+                            std::cout << BACO_GRAY "<-> Start loading preset: " << preset_name << BACO_END << std::endl
                                       << std::endl;
                             std::cout << BACO_GRAY "<-> Start loading params" << BACO_END << std::endl << std::endl;
                         }
@@ -131,10 +128,14 @@ void OscListener::threadLoop()
                         this->data_handler->setCollectValues(true);
                     }
 
-                    // if (address == "/rnbo/inst/0/presets/loaded" && !this->instance_parsing) {
-                    if (instance_message == "presets/loaded" && !this->instance_parsing) {
-                        // TODO: get back to real preset name when RNBO bug is fixed
-                        this->setRainPotsButtons();
+                    if (address == "/rnbo/inst/control/sets/presets/loaded") {
+                        std::string preset_name = std::string(tosc_getNextString(&osc));
+                        this->setRainPotsButtons(preset_name);
+                        if (this->debug) {
+                            std::cout << BACO_GRAY "<-> Finished loading preset: " << preset_name << BACO_END
+                                      << std::endl
+                                      << std::endl;
+                        }
                     }
 
                     std::string suffix = "normalized";
@@ -147,16 +148,6 @@ void OscListener::threadLoop()
                 }
             }
         }
-        if (this->is_preset_loading) {
-            this->preset_load_end = std::chrono::high_resolution_clock::now();
-            auto duration         = std::chrono::duration_cast<std::chrono::milliseconds>(preset_load_end - preset_load_start);
-            if (duration.count() > 300) {
-                if (this->debug) {
-                    std::cout << "Preset Load Timeout: " << duration.count() << " ms" << std::endl;
-                }
-                this->setRainPotsButtons();
-            }
-        }
     }
 
     // close the UDP socket
@@ -167,12 +158,12 @@ void OscListener::threadLoop()
     }
 }
 
-void OscListener::setRainPotsButtons()
+void OscListener::setRainPotsButtons(std::string preset_name)
 {
     if (this->debug) {
 
         std::cout << std::endl
-                  << BACO_GRAY << "<-> Finished loading preset: " << this->loading_preset_name << BACO_END << std::endl
+                  << BACO_GRAY << "<-> Finished loading preset: " << preset_name << BACO_END << std::endl
                   << std::endl;
         std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
     }
@@ -190,30 +181,27 @@ void OscListener::setRainPotsButtons()
 
     try {
         std::string::size_type sz;
-        volatile int           preset_name_mumeric = std::stoi(this->loading_preset_name, &sz);
+        volatile int           preset_name_mumeric = std::stoi(preset_name, &sz);
         preset_name_mumeric                        = (preset_name_mumeric < 0) ? 0 : preset_name_mumeric;
         preset_name_mumeric                        = (preset_name_mumeric > 99) ? 99 : preset_name_mumeric;
 
         char index_byte = (char)preset_name_mumeric;
 
         char buff_msg_set_preset[4] = { (char)0xF0, (char)0xE8, index_byte, (char)0x00 };
-        // For now we set the RainPot Imdicator to "loaded" when loading starts.
+        // For now we set the RainPot Indicator to "loaded" when loading starts.
         // Later if implemente in RNBO we do this in two steps
 
         serial_queue_entry_t msg_set_preset;
-        // msg_set_preset.buffer      = buff_msg_set_preset;
 
         std::copy(std::begin(buff_msg_set_preset), std::end(buff_msg_set_preset), std::begin(msg_set_preset.buffer));
         msg_set_preset.buffer_size = 4;
 
         this->serial_connector->addToMessageQueue(&msg_set_preset);
+        usleep(1000);
 
     } catch (...) {
         if (this->debug) {
             std::cerr << BACO_RED << "Loaded preset name cannot be tranlated to a number" << BACO_END << std::endl;
         }
     }
-    this->loading_preset_name = "";
-
-    this->is_preset_loading = false;
 }

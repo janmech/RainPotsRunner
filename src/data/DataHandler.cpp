@@ -364,42 +364,24 @@ void DataHandler::loadConfig()
     }
     try {
         Json::Value root = this->parseStringToJSON(rawJson);
-        if (this->instance_parsing) {
-            Json::Value instances_root = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"];
-            for (Json::ValueIterator itr = instances_root.begin(); itr != instances_root.end(); itr++) {
-                std::string instance_index = itr.key().asString();
-                int         instance_index_numeric;
-                int         result = sscanf(instance_index.c_str(), "%d", &instance_index_numeric);
-                if (result == 1) {
-                    // Continue iterating into Json
-                    Json::Value instance_data = instances_root[itr.key().asString()]["CONTENTS"]["params"]["CONTENTS"];
-                    if (!instance_data.isNull()) {
-                        for (Json::ValueIterator itr_instance = instance_data.begin(); itr_instance != instance_data.end();
-                             itr_instance++) {
-                            this->extractParmFromJson(instance_data, &config_map);
-                        }
+        Json::Value instances_root = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"];
+        for (Json::ValueIterator itr = instances_root.begin(); itr != instances_root.end(); itr++) {
+            std::string instance_index = itr.key().asString();
+            int         instance_index_numeric;
+            int         result = sscanf(instance_index.c_str(), "%d", &instance_index_numeric);
+            if (result == 1) {
+                // Continue iterating into Json
+                Json::Value instance_data = instances_root[itr.key().asString()]["CONTENTS"]["params"]["CONTENTS"];
+                if (!instance_data.isNull()) {
+                    for (Json::ValueIterator itr_instance = instance_data.begin(); itr_instance != instance_data.end();
+                         itr_instance++) {
+                        this->extractParmFromJson(instance_data, &config_map);
                     }
                 }
-                std::cout << std::endl;
             }
-            this->param_config = config_map;
-        } else {
-
-            // Parsing Parameters into map
-            Json::Value params = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["params"]["CONTENTS"];
-            Json::Value default_value;
-
-            // std::vector<std::string> param_names = params.getMemberNames();
-
-            for (Json::ValueIterator itr = params.begin(); itr != params.end(); itr++) {
-                Json::Value param_data         = params.get(itr.key().asString(), default_value);
-                Json::Value param_data_content = param_data.get("CONTENTS", default_value);
-                if (!param_data_content.isNull()) {
-                    this->extractParmFromJson(param_data_content, &config_map);
-                }
-            }
-            this->param_config = config_map;
+            std::cout << std::endl;
         }
+        this->param_config = config_map;
 
         // Parsing prests into map
         const Json::Value presets

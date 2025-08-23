@@ -22,10 +22,9 @@
 
 class DataHandler {
 public:
-    DataHandler(bool debug = false, bool use_instance_parsing = false)
+    DataHandler(bool debug = false)
     {
         this->debug            = debug;
-        this->instance_parsing = use_instance_parsing;
     }
 
     config_map_t                        getParams(bool force_load = false);
@@ -55,7 +54,6 @@ public:
 
 protected:
     bool               debug            = false;
-    bool               instance_parsing = false;
     config_map_t       param_config;
     path_value_map_t   path_values;
     preset_index_map_t presets; // Wec urrently don't use this map. It's still here for future features

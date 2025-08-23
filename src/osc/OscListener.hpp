@@ -21,27 +21,22 @@ extern "C" {
 
 class OscListener : public ThreadClass {
 public:
-    OscListener(DataHandler* data_handler, SerialConnector* serial_connector, bool debug = false, bool use_instance_paring = false)
+    OscListener(DataHandler* data_handler, SerialConnector* serial_connector, bool debug = false)
     {
         this->debug            = debug;
         this->data_handler     = data_handler;
         this->serial_connector = serial_connector;
-        this->instance_parsing = use_instance_paring;
     }
 
     ~OscListener() { /* empty */ }
 
 protected:
     bool                                           debug                 = false;
-    bool                                           instance_parsing      = false;
     bool                                           patcher_load_received = false;
     DataHandler*                                   data_handler;
     SerialConnector*                               serial_connector;
     void                                           threadLoop();
-    void                                           setRainPotsButtons();
-    bool                                           is_preset_loading   = false;
-    std::string                                    loading_preset_name = "";
-    std::chrono::high_resolution_clock::time_point preset_load_start   = std::chrono::high_resolution_clock::now();
+    void                                           setRainPotsButtons(std::string preset_name = "");
     std::chrono::high_resolution_clock::time_point preset_load_end     = std::chrono::high_resolution_clock::now();
 
 private:

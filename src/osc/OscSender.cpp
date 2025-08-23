@@ -71,7 +71,9 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
         osc_message_data->format = "s";
         /* Don't save preset "000" it's reserved for default settings created in Max/RNBO before export*/
         if ((int)queue_message->buffer[1] != 0) {
-            osc_message_data->path = "/rnbo/inst/0/presets/save";
+            // osc_message_data->path = "/rnbo/inst/0/presets/save";
+            osc_message_data->path = "/rnbo/inst/control/sets/presets/save";
+
         } else {
             osc_message_data->path = "";
         }
@@ -81,7 +83,8 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
     } break;
     case OSC_MESSAGE_TYPE_PRESET_LOAD: {
         osc_message_data->format = "s";
-        osc_message_data->path   = "/rnbo/inst/0/presets/load";
+        // osc_message_data->path   = "/rnbo/inst/0/presets/load";
+        osc_message_data->path   = "/rnbo/inst/control/sets/presets/load";
         std::stringstream preset_name;
         preset_name << std::setw(3) << std::setfill('0') << (int)queue_message->buffer[1];
         osc_message_data->val_string = preset_name.str();
