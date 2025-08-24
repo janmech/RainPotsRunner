@@ -29,7 +29,6 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
     int pick_up_action = PICK_UP_LOCKED;
 
     if (msg->type == OSC_MESSAGE_TYPE_CC && msg->buffer_size >= 4) {
-
         int unit       = (int)(msg->buffer[0] & 0x0F);
         int controller = (int)msg->buffer[1];
         if (controller >= 6) { // We only check for knobs, not for buttons
@@ -232,7 +231,6 @@ void DataHandler::clearPathValues()
     path_value_map_t::iterator iterator = this->path_values.begin();
     while (iterator != this->path_values.end()) {
         std::string path = iterator->first;
-        // path_value_t path_value        = iterator->second;
         this->path_values[path].value  = 0.;
         this->path_values[path].loaded = false;
         this->path_values[path].locked = false;
@@ -245,6 +243,7 @@ void DataHandler::setPathValue(std::string path, float value)
     if (this->path_values.find(path) != this->path_values.end()) {
         this->path_values[path].loaded = true;
         this->path_values[path].value  = value;
+        this->path_values[path].locked = false;
     }
 }
 

@@ -14,10 +14,11 @@ extern "C" {
 #include "../serial/SerialConnector.hpp"
 #include <chrono>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <regex>
+#include <time.h>
 
 class OscListener : public ThreadClass {
 public:
@@ -37,7 +38,6 @@ protected:
     SerialConnector*                               serial_connector;
     void                                           threadLoop();
     void                                           setRainPotsButtons(std::string preset_name = "");
-    std::chrono::high_resolution_clock::time_point preset_load_end     = std::chrono::high_resolution_clock::now();
 
 private:
     static void* InternalThreadEntryFunc(void* This)

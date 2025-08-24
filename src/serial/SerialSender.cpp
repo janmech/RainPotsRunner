@@ -7,11 +7,12 @@ void SerialSender::threadLoop()
         usleep(100 * 1000);
     }
     while (this->keep_running) {
-        serial_queue_entry_t* entry = this->ptr_ts_message_queue->pop();
+        serial_queue_entry_t * entry = this->ptr_serial_connector->popFromMessageQueue();
 
         // FIXME: This is a work around because sometimes buffersize is negative (uninitialized?). Find real cause and fix it.
         if (entry->buffer_size > 0) {
             write(*this->p_fd, entry->buffer, entry->buffer_size);
+            usleep(2000); // FIXME: wokraround not lo overload the RainPots. Look for a more solid solution.
 
             if (this->debug) {
                 std::cout << BACO_MAGENTA << "<-- Sending serial packet: [" << entry->buffer_size << "] " << BACO_END;
@@ -30,4 +31,4 @@ void SerialSender::threadLoop()
 
 void SerialSender::setFileDescriptor(int* fd) { this->p_fd = fd; }
 
-void SerialSender::setMessageQueue(TSQueue<serial_queue_entry_t*>* ts_message_queue) { this->ptr_ts_message_queue = ts_message_queue; }
+void SerialSender::setSerialConnector(SerialConnector* ser_conn) { this->ptr_serial_connector = ser_conn; }

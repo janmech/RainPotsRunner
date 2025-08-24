@@ -94,9 +94,6 @@ void OscListener::threadLoop()
                         this->patcher_load_received = true;
                     }
 
-                    // if (address == "/rnbo/inst/0/name" && this->patcher_load_received) {
-                    /// rnbo/inst/control/sets/meta
-                    // if (instance_message == "name" && this->patcher_load_received) {
                     if (address == "/rnbo/inst/control/sets/meta" && this->patcher_load_received) {
                         /* When loading immediatle the presets don't show up. Give  RNBO time to finish writing the config file*/
                         // TODO: See if there is a more solid solution. This might fail patches with a lot of params. Maybe ask
@@ -119,8 +116,7 @@ void OscListener::threadLoop()
                     if (address == "/rnbo/inst/control/sets/presets/load") {
                         std::string preset_name = std::string(tosc_getNextString(&osc));
                         if (this->debug) {
-                            std::cout << BACO_GRAY "<-> Start loading preset: " << preset_name << BACO_END << std::endl
-                                      << std::endl;
+                            std::cout << BACO_GRAY "<-> Start loading preset: " << preset_name << BACO_END << std::endl << std::endl;
                             std::cout << BACO_GRAY "<-> Start loading params" << BACO_END << std::endl << std::endl;
                         }
 
@@ -129,11 +125,11 @@ void OscListener::threadLoop()
                     }
 
                     if (address == "/rnbo/inst/control/sets/presets/loaded") {
+                        this->data_handler->setCollectValues(false);
                         std::string preset_name = std::string(tosc_getNextString(&osc));
                         this->setRainPotsButtons(preset_name);
                         if (this->debug) {
-                            std::cout << BACO_GRAY "<-> Finished loading preset: " << preset_name << BACO_END
-                                      << std::endl
+                            std::cout << BACO_GRAY "<-> Finished loading preset: " << preset_name << BACO_END << std::endl
                                       << std::endl;
                         }
                     }
@@ -145,6 +141,16 @@ void OscListener::threadLoop()
                         float value = tosc_getNextFloat(&osc);
                         this->data_handler->setPathValue(address, value);
                     };
+
+                    // set button states and pickup values
+                    //TODO: set Button state
+                    if (address.ends_with("/normalized")) {
+                        if (!this->data_handler->getCollectValues()) {
+                            float value = tosc_getNextFloat(&osc);
+                            this->data_handler->setPathValue(address, value);
+                           
+                        }
+                    }
                 }
             }
         }
@@ -162,12 +168,9 @@ void OscListener::setRainPotsButtons(std::string preset_name)
 {
     if (this->debug) {
 
-        std::cout << std::endl
-                  << BACO_GRAY << "<-> Finished loading preset: " << preset_name << BACO_END << std::endl
-                  << std::endl;
+        std::cout << std::endl << BACO_GRAY << "<-> Finished loading preset: " << preset_name << BACO_END << std::endl << std::endl;
         std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
     }
-    this->data_handler->setCollectValues(false);
     if (this->debug) {
         this->data_handler->printPathValues();
     }

@@ -12,6 +12,7 @@ extern "C" {
 #include "../bash_colors.hpp"
 #include "../data/TSQueue.hpp"
 #include "../rainpot_types.hpp"
+#include "SerialConnector.hpp"
 
 class SerialSender : public ThreadClass {
 public:
@@ -22,7 +23,7 @@ public:
     }
 
     void setFileDescriptor(int* fd);
-    void setMessageQueue(TSQueue<serial_queue_entry_t*>* ts_message_queue);
+    void setSerialConnector(SerialConnector * ser_conn);
 
 protected:
     bool debug = false;
@@ -30,7 +31,8 @@ protected:
 
 private:
     int*                            p_fd                 = NULL;
-    TSQueue<serial_queue_entry_t*>* ptr_ts_message_queue = NULL;
+    SerialConnector * ptr_serial_connector = nullptr;
+
 
     static void* InternalThreadEntryFunc(void* This)
     {

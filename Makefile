@@ -1,7 +1,7 @@
 CC = g++
 # CC = gcc
-CFLAGGS = -g -Wall -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
-CFLAGGS_OPTIMIZED = -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
+CFLAGGS = -g -Wall -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic -std=c++20
+CFLAGGS_OPTIMIZED = -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic -std=c++20
 
 #€-lwiringPi
 #-Werror

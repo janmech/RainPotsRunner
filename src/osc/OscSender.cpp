@@ -18,16 +18,15 @@ void OscSender::threadLoop()
             const char* path   = message_data.path.c_str();
             const char* format = message_data.format.c_str();
             if (this->debug) {
-                std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << std::endl
-                          << "\t" << path << std::endl
-                          << "\t" << format << std::endl;
+                std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << " " << path << " " << format;
                 if (format[0] == 'f') {
-                    std::cout << "\t" << message_data.val_float << std::endl;
+                    std::cout << " " << message_data.val_float ;
                 } else if (format[0] == 's') {
-                    std::cout << "\t" << message_data.val_string << std::endl;
+                    std::cout << " " << message_data.val_string;
                 } else {
-                    std::cout << "\t usupported format:" << format << std::endl;
+                    std::cout << " usupported format:" << format ;
                 }
+                std::cout << std::endl;
             }
             switch (msg->type) {
             case OSC_MESSAGE_TYPE_CC:

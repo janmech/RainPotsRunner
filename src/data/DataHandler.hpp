@@ -22,10 +22,7 @@
 
 class DataHandler {
 public:
-    DataHandler(bool debug = false)
-    {
-        this->debug            = debug;
-    }
+    DataHandler(bool debug = false) { this->debug = debug; }
 
     config_map_t                        getParams(bool force_load = false);
     preset_index_map_t                  getPresets(bool force_load = false);
@@ -53,21 +50,23 @@ public:
     void printPathValues();
 
 protected:
-    bool               debug            = false;
+    bool               debug = false;
     config_map_t       param_config;
     path_value_map_t   path_values;
-    preset_index_map_t presets; // Wec urrently don't use this map. It's still here for future features
+    preset_index_map_t presets; // We currently don't use this map. It's still here for future features
     ctl_value_map_t    last_sent_ctl_values;
-    bool               collect_values = false;
-    void               loadConfig();
-    float              scaleValue(float x, float in_min = 0., float in_max = 1., float out_min = 0., float out_max = 0.);
-    float              clipValue(float x, float min = 0., float max = 1.);
-    std::string        rightPad(std::string const& str, int padding);
-    std::string        leftPad(std::string const& str, int padding);
-    void               extractParmFromJson(
-                      Json::Value   rainpot_config,     //
-                      config_map_t* ptr_config_map,     //
-                      uint          recursion_depth = 0 //
-                  );
+    bool collect_values = false; // Is stet to true when a preset start loading and to false when preset loading has finished. When
+                                 // true param values coming in via OSC are collected. After the preset loading has finished, RainPot
+                                 // button states and pick-up values are set. Use getter and setter to acces this value.
+    void        loadConfig();
+    float       scaleValue(float x, float in_min = 0., float in_max = 1., float out_min = 0., float out_max = 0.);
+    float       clipValue(float x, float min = 0., float max = 1.);
+    std::string rightPad(std::string const& str, int padding);
+    std::string leftPad(std::string const& str, int padding);
+    void        extractParmFromJson(
+               Json::Value   rainpot_config,     //
+               config_map_t* ptr_config_map,     //
+               uint          recursion_depth = 0 //
+           );
 };
 #endif

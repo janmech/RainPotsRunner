@@ -61,6 +61,7 @@ public:
     ~SerialConnector() { /* empty */ }
     int*                            getFileDescriptor();
     void                            addToMessageQueue(serial_queue_entry_t* message);
+    serial_queue_entry_t*           popFromMessageQueue();
     TSQueue<serial_queue_entry_t*>* getMessageQueue();
 
 protected:
@@ -81,7 +82,7 @@ private:
         return NULL;
     }
 
-    pthread_t _thread;
+    pthread_t  _thread;
 };
 
 #endif // __SERIAL_CONNECTOR__
