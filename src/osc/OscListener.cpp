@@ -107,9 +107,9 @@ void OscListener::threadLoop()
                     }
 
                     if (address == "/rnbo/inst/control/sets/load") {
-                        std::string foo = std::string(tosc_getNextString(&osc));
+                        std::string set_name = std::string(tosc_getNextString(&osc));
                         if (this->debug) {
-                            std::cout << "\n\n" << "Loading Set/Graph: " << foo << "\n\n" << std::endl;
+                            std::cout << "\n\n" << "Loading Set/Graph: " << set_name << "\n\n" << std::endl;
                         }
                     }
 
@@ -136,6 +136,30 @@ void OscListener::threadLoop()
 
                     std::string suffix = "normalized";
 
+                    // TODO: I need to redo this and parse the entire rainpot config
+
+                    if (address.starts_with("/rnbo/inst/") && address.ends_with("/meta")) {
+                        std::string meta_data_string = tosc_getNextString(&osc);
+                        // TODO: clear config when meta string is empty or has no "rainpots" key
+                        std::string path = address.substr(0, address.find("meta")) + "normalized";
+                        try {
+                            if (meta_data_string == "") {
+                                this->data_handler->unassignControllerByPath(path);
+                            } else {
+                                this->data_handler->updateMetaData(meta_data_string, path);
+                            }
+
+                        } catch (...) {
+                            if (this->debug) {
+                                this->data_handler->unassignControllerByPath(path);
+                                std::cerr << BACO_RED << "Error parsing meta data as JSON for: " << address << BACO_END << std::endl;
+                                std::exception_ptr p = std::current_exception();
+                                std::cout << (p ? p.__cxa_exception_type()->name() : "null") << std::endl;
+                                this->data_handler->getParams(true);
+                            }
+                        }
+                    }
+
                     if (this->data_handler->getCollectValues()
                         && std::mismatch(suffix.rbegin(), suffix.rend(), address.rbegin()).first == suffix.rend()) {
                         float value = tosc_getNextFloat(&osc);
@@ -143,12 +167,18 @@ void OscListener::threadLoop()
                     };
 
                     // set button states and pickup values
-                    //TODO: set Button state
                     if (address.ends_with("/normalized")) {
                         if (!this->data_handler->getCollectValues()) {
-                            float value = tosc_getNextFloat(&osc);
-                            this->data_handler->setPathValue(address, value);
-                           
+                            int unit      = -1;
+                            int ctl_index = -1;
+                            if (this->data_handler->getUnitCtlIndexFromPath(address, unit, ctl_index)) {
+                                float value = tosc_getNextFloat(&osc);
+                                this->data_handler->setPathValue(address, value);
+                                if (ctl_index < 6) {
+                                    serial_queue_entry_t entry = this->data_handler->makeSetButtonMessage(unit, ctl_index, address);
+                                    this->serial_connector->addToMessageQueue(&entry);
+                                }
+                            };
                         }
                     }
                 }
@@ -167,7 +197,6 @@ void OscListener::threadLoop()
 void OscListener::setRainPotsButtons(std::string preset_name)
 {
     if (this->debug) {
-
         std::cout << std::endl << BACO_GRAY << "<-> Finished loading preset: " << preset_name << BACO_END << std::endl << std::endl;
         std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
     }

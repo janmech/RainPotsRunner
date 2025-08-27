@@ -38,7 +38,11 @@ public:
     Json::Value                         parseStringToJSON(std::string raw_json_string);
     int                                 makeValuePickupMessasge(queue_entry_message_t* msg, serial_queue_entry_t* serial_queue_entry);
     std::map<int, serial_queue_entry_t> makeSetButtonValueMessages();
+    serial_queue_entry_t                makeSetButtonMessage(int unit, int ctl_index, std::string param_path);
     char                                formatButtonValue(int unit, int button_index, float raw_value);
+    bool                                getUnitCtlIndexFromPath(std::string path, int& unit, int& ctl_index);
+    void                                updateMetaData(std::string raw_data_string, std::string path);
+    void                                unassignControllerByPath(std::string path);
 
     static size_t writeCallback(void* contents, size_t size, size_t nmemb, void* userp)
     {
@@ -63,10 +67,6 @@ protected:
     float       clipValue(float x, float min = 0., float max = 1.);
     std::string rightPad(std::string const& str, int padding);
     std::string leftPad(std::string const& str, int padding);
-    void        extractParmFromJson(
-               Json::Value   rainpot_config,     //
-               config_map_t* ptr_config_map,     //
-               uint          recursion_depth = 0 //
-           );
+    void        extractParmFromJson(Json::Value rainpot_config, config_map_t* ptr_config_map, uint recursion_depth = 0);
 };
 #endif
