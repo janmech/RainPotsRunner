@@ -13,9 +13,10 @@ pthread_t*       thread_osc_listener     = NULL;
 
 int main(int argc, char* argv[])
 {
-    int         opt;
-    bool        debug            = false;
-    int         baudraute        = 380400;
+    int  opt;
+    bool debug = false;
+    // int         baudraute        = 380400;
+    int         baudraute        = 115200;
     std::string serial_port_path = SERIAL_PORT_PATH;
 
     while ((opt = getopt(argc, argv, "db:vs:i")) != -1) {

@@ -33,7 +33,7 @@ extern "C" {
 
 #endif
 
-#define  VERSION "1.2.1-dev (rp5)"
+#define  VERSION "1.4-beta (rp5)"
 
 void handle_sigint();
 void print_trace_gdb();

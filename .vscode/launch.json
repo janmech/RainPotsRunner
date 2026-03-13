@@ -5,14 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "rainpots: (gdb) Launch",
+            "name": "rainpots: -d (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/rainpots",
             "args": [
-                "-d",
-                "-b 115200",
-                "-i"
+                "-d"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
@@ -31,6 +29,30 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+         {
+            "name": "rainpots",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/rainpots",
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
+
     ]
 }
