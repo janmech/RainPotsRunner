@@ -1,15 +1,18 @@
 #include "main.hpp"
 
-bool             running                 = true;
-OscSender*       ptr_osc_sender          = NULL;
-OscListener*     ptr_osc_listener        = NULL;
-DataHandler*     ptr_data_handler        = NULL;
-SerialConnector* ptr_serial_connector    = NULL;
-SerialSender*    ptr_serial_sender       = NULL;
-pthread_t*       thread_serial_sender    = NULL;
-pthread_t*       thread_serial_connector = NULL;
-pthread_t*       thread_osc_sender       = NULL;
-pthread_t*       thread_osc_listener     = NULL;
+bool             running              = true;
+OscSender*       ptr_osc_sender       = NULL;
+OscListener*     ptr_osc_listener     = NULL;
+DataHandler*     ptr_data_handler     = NULL;
+SerialConnector* ptr_serial_connector = NULL;
+SerialSender*    ptr_serial_sender    = NULL;
+Pinger*          ptr_pinger           = NULL;
+pthread_t*       thread_serial_sender = NULL;
+pthread_t*       thread_pinger        = NULL;
+
+pthread_t* thread_serial_connector = NULL;
+pthread_t* thread_osc_sender       = NULL;
+pthread_t* thread_osc_listener     = NULL;
 
 int main(int argc, char* argv[])
 {
@@ -68,6 +71,10 @@ int main(int argc, char* argv[])
     SerialSender serial_sender(debug);
     ptr_serial_sender = &serial_sender;
 
+    Pinger pinger(debug);
+    pinger.setSerialConnector(&serial_connector);
+    ptr_pinger = &pinger;
+
     OscListener osc_listener(&data_handler, &serial_connector, debug);
     ptr_osc_listener    = &osc_listener;
     thread_osc_listener = osc_listener.start();
@@ -89,6 +96,8 @@ int main(int argc, char* argv[])
     serial_sender.setFileDescriptor(serial_connector.getFileDescriptor());
     serial_sender.setSerialConnector(ptr_serial_connector);
     thread_serial_sender = serial_sender.start();
+
+    pinger.start();
 
     while (running) {
         sleep(5);
@@ -123,6 +132,9 @@ void handle_sigint()
     pid_t pid = getpid();
     std::cout << std::endl << BACO_YELLO << "Terminating main thread: " << pid << BACO_END << std::endl;
     running = false;
+    if (ptr_pinger != NULL) {
+        pthread_kill(*thread_pinger, SIGKILL);
+    }
     if (ptr_osc_sender != NULL) {
         pthread_kill(*thread_osc_sender, SIGKILL);
         // ptr_osc_sender->stop();

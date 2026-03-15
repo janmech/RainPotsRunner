@@ -24,6 +24,7 @@ extern "C" {
 #include "src/osc/OscSender.hpp"
 #include "src/serial/SerialConnector.hpp"
 #include "src/serial/SerialSender.hpp"
+#include "src/serial/Pinger.hpp"
 #include <iostream>
 #include <string>
 
@@ -33,7 +34,7 @@ extern "C" {
 
 #endif
 
-#define  VERSION "1.4-beta (rp5)"
+#define  VERSION "1.5"
 
 void handle_sigint();
 void print_trace_gdb();
