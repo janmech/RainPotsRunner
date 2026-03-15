@@ -38,7 +38,11 @@ public:
     Json::Value                         parseStringToJSON(std::string raw_json_string);
     int                                 makeValuePickupMessasge(queue_entry_message_t* msg, serial_queue_entry_t* serial_queue_entry);
     std::map<int, serial_queue_entry_t> makeSetButtonValueMessages();
+    serial_queue_entry_t                makeSetButtonMessage(int unit, int ctl_index, std::string param_path);
     char                                formatButtonValue(int unit, int button_index, float raw_value);
+    bool                                getUnitCtlIndexFromPath(std::string path, int& unit, int& ctl_index);
+    void                                updateMetaData(std::string raw_data_string, std::string path);
+    void                                unassignControllerByPath(std::string path);
 
     static size_t writeCallback(void* contents, size_t size, size_t nmemb, void* userp)
     {
@@ -53,13 +57,16 @@ protected:
     bool               debug = false;
     config_map_t       param_config;
     path_value_map_t   path_values;
-    preset_index_map_t presets; // Wec urrently don't use this map. It's still here for future features
+    preset_index_map_t presets; // We currently don't use this map. It's still here for future features
     ctl_value_map_t    last_sent_ctl_values;
-    bool               collect_values = false;
-    void               loadConfig();
-    float              scaleValue(float x, float in_min = 0., float in_max = 1., float out_min = 0., float out_max = 0.);
-    float              clipValue(float x, float min = 0., float max = 1.);
-    std::string        rightPad(std::string const& str, int padding);
-    std::string        leftPad(std::string const& str, int padding);
+    bool collect_values = false; // Is stet to true when a preset start loading and to false when preset loading has finished. When
+                                 // true param values coming in via OSC are collected. After the preset loading has finished, RainPot
+                                 // button states and pick-up values are set. Use getter and setter to acces this value.
+    void        loadConfig();
+    float       scaleValue(float x, float in_min = 0., float in_max = 1., float out_min = 0., float out_max = 0.);
+    float       clipValue(float x, float min = 0., float max = 1.);
+    std::string rightPad(std::string const& str, int padding);
+    std::string leftPad(std::string const& str, int padding);
+    void        extractParmFromJson(Json::Value rainpot_config, config_map_t* ptr_config_map, uint recursion_depth = 0);
 };
 #endif

@@ -1,22 +1,57 @@
 #include "main.hpp"
 
-#include <string>
+bool             running              = true;
+OscSender*       ptr_osc_sender       = NULL;
+OscListener*     ptr_osc_listener     = NULL;
+DataHandler*     ptr_data_handler     = NULL;
+SerialConnector* ptr_serial_connector = NULL;
+SerialSender*    ptr_serial_sender    = NULL;
+Pinger*          ptr_pinger           = NULL;
+pthread_t*       thread_serial_sender = NULL;
+pthread_t*       thread_pinger        = NULL;
 
-bool             running = true;
-OscSender*       ptr_osc_sender;
-OscListener*     ptr_osc_listener;
-DataHandler*     ptr_data_handler;
-SerialConnector* ptr_serial_connector; // foo
+pthread_t* thread_serial_connector = NULL;
+pthread_t* thread_osc_sender       = NULL;
+pthread_t* thread_osc_listener     = NULL;
 
 int main(int argc, char* argv[])
 {
-    bool debug = (argc == 2 && std::string(argv[1]) == "-d");
+    int  opt;
+    bool debug = false;
+    // int         baudraute        = 380400;
+    int         baudraute        = 115200;
+    std::string serial_port_path = SERIAL_PORT_PATH;
+
+    while ((opt = getopt(argc, argv, "db:vs:i")) != -1) {
+        // printf("option: %c\n", opt);
+        // printf("value: %s\n", optarg);
+        switch (opt) {
+        case 'v':
+            std::cout << "RainPots Runner by Jan Mech" << std::endl;
+            std::cout << "version: " << VERSION << std::endl;
+            return EXIT_SUCCESS;
+        case 'd':
+            debug = true;
+            break;
+        case 'b':
+            baudraute = std::stoi(optarg);
+            break;
+        case 's':
+            serial_port_path = (std::string)optarg;
+            break;
+        case '?':
+            std::cout << "unknown option" << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+
     signal(SIGINT, (void (*)(int))handle_sigint);
     signal(SIGSEGV, handler_sigsev);
 
     pid_t pid = getpid();
     if (debug) {
         std::cout << BACO_YELLO << "Started main thread: " << pid << BACO_END << std::endl;
+        std::cout << BACO_YELLO << "Using serial port: " << serial_port_path << " at " << baudraute << " baud" << std::endl;
     }
 
     DataHandler data_handler(debug);
@@ -27,27 +62,49 @@ int main(int argc, char* argv[])
     }
 
     OscSender osc_sender(&data_handler, debug);
-    ptr_osc_sender = &osc_sender;
-    osc_sender.start();
+    ptr_osc_sender    = &osc_sender;
+    thread_osc_sender = osc_sender.start();
 
-    SerialConnector serial_connector(&osc_sender, &data_handler, debug);
+    SerialConnector serial_connector(&osc_sender, &data_handler, baudraute, serial_port_path, debug);
     ptr_serial_connector = &serial_connector;
 
+    SerialSender serial_sender(debug);
+    ptr_serial_sender = &serial_sender;
+
+    Pinger pinger(debug);
+    pinger.setSerialConnector(&serial_connector);
+    ptr_pinger = &pinger;
+
     OscListener osc_listener(&data_handler, &serial_connector, debug);
-    ptr_osc_listener = &osc_listener;
-    osc_listener.start();
+    ptr_osc_listener    = &osc_listener;
+    thread_osc_listener = osc_listener.start();
 
     /* ---------------------------------------------------- */
     /* -- Runs in main thread, therefore MUST start last -- */
     /* ---------------------------------------------------- */
-    serial_connector.start();
+    thread_serial_connector = serial_connector.start();
+
+    while (serial_connector.getFileDescriptor() == NULL) {
+        usleep(200 * 1000);
+        if (debug) {
+            std::cout << BACO_YELLO << "SerialConnector Waiting for serial file descriptor..." << std::endl;
+        }
+    }
+    if (debug) {
+        std::cout << BACO_YELLO << "SerialConnector got file descriptor" << BACO_END << std::endl;
+    }
+    serial_sender.setFileDescriptor(serial_connector.getFileDescriptor());
+    serial_sender.setSerialConnector(ptr_serial_connector);
+    thread_serial_sender = serial_sender.start();
+
+    pinger.start();
 
     while (running) {
         sleep(5);
     }
     std::cout << BACO_YELLO << "Main thread terminated!" << BACO_END << std::endl;
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 void print_trace_gdb()
@@ -75,9 +132,24 @@ void handle_sigint()
     pid_t pid = getpid();
     std::cout << std::endl << BACO_YELLO << "Terminating main thread: " << pid << BACO_END << std::endl;
     running = false;
-    ptr_osc_sender->stop();
-    ptr_osc_listener->stop();
-    ptr_serial_connector->stop();
+    if (ptr_pinger != NULL) {
+        pthread_kill(*thread_pinger, SIGKILL);
+    }
+    if (ptr_osc_sender != NULL) {
+        pthread_kill(*thread_osc_sender, SIGKILL);
+        // ptr_osc_sender->stop();
+    }
+    if (ptr_osc_listener != NULL) {
+        pthread_kill(*thread_osc_listener, SIGKILL);
+        // ptr_osc_listener->stop();
+    }
+    if (ptr_serial_connector != NULL) {
+        pthread_kill(*thread_serial_connector, SIGKILL);
+        // ptr_serial_connector->stop();
+    }
+    if (ptr_serial_sender != NULL) {
+        pthread_kill(*thread_serial_sender, SIGKILL);
+    }
 }
 
 void handler_sigsev(int sig)

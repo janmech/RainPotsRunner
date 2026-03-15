@@ -31,7 +31,7 @@ add at the end of the file:
 
 ```
 if [[ ! $(pgrep rainpots) ]]; then
-    rainpots 2> /home/pi/Documents/rainpots/log/rainpots-error.log 1> /home/pi/Documents/rainpots/log/rainpots.log
+    rainpots 2> /home/pi/Documents/rainpots/log/rainpots-error.log
 fi
 ```
 Save and close

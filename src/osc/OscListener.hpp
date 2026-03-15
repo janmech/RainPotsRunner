@@ -8,14 +8,17 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "../TheadClass/ThreadClass.h"
+#include "../TheadClass/ThreadClass.hpp"
 #include "../bash_colors.hpp"
 #include "../data/DataHandler.hpp"
 #include "../serial/SerialConnector.hpp"
+#include <chrono>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <string_view>
 #include <vector>
+#include <time.h>
 
 class OscListener : public ThreadClass {
 public:
@@ -26,16 +29,15 @@ public:
         this->serial_connector = serial_connector;
     }
 
-    ~OscListener()
-    { /* empty */
-    }
+    ~OscListener() { /* empty */ }
 
 protected:
-    bool             debug                 = false;
-    bool             patcher_load_received = false;
-    DataHandler*     data_handler;
-    SerialConnector* serial_connector;
-    void             threadLoop();
+    bool                                           debug                 = false;
+    bool                                           patcher_load_received = false;
+    DataHandler*                                   data_handler;
+    SerialConnector*                               serial_connector;
+    void                                           threadLoop();
+    void                                           setRainPotsButtons(std::string preset_name = "");
 
 private:
     static void* InternalThreadEntryFunc(void* This)

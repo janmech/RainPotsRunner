@@ -7,7 +7,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "../TheadClass/ThreadClass.h"
+#include "../TheadClass/ThreadClass.hpp"
 #include "../bash_colors.hpp"
 #include "../data/DataHandler.hpp"
 #include "../data/TSQueue.hpp"
@@ -35,11 +35,6 @@ public:
     void      addToMessageQueue(queue_entry_message_t* message);
     void      sendMessage(const char* address, const char* format, ...);
     pthread_t getThreadId() { return pthread_self(); }
-    void      crash()
-    {
-        int* foo = NULL;
-        printf("%d", *foo);
-    }
 
 protected:
     bool                               debug = false;

@@ -29,7 +29,6 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
     int pick_up_action = PICK_UP_LOCKED;
 
     if (msg->type == OSC_MESSAGE_TYPE_CC && msg->buffer_size >= 4) {
-
         int unit       = (int)(msg->buffer[0] & 0x0F);
         int controller = (int)msg->buffer[1];
         if (controller >= 6) { // We only check for knobs, not for buttons
@@ -55,10 +54,10 @@ int DataHandler::makeValuePickupMessasge(queue_entry_message_t* msg, serial_queu
                         || !ctl_state.loaded) { // if not loaded we dont have information so just send the new param values
                         pick_up_action = PICK_UP_LOCKED;
                     } else if (ctl_state.loaded) {
-                        // is the current value hieger or lower than the loaded one?
+                        // is the current value higer or lower than the loaded one?
 
                         float diff = float_value - ctl_state.value;
-                        if (std::abs(diff) > 0.01f) {
+                        if (std::abs(diff) > 0.025f) {
                             pick_up_action = (diff > 0) ? PICK_UP_TURN_DOWN : PICK_UP_TURN_UP;
                         } else {
                             pick_up_action = PICK_UP_LOCKED;
@@ -115,7 +114,7 @@ std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
         int  unit            = unit_iterator->first;
         char start_condition = 0xF0 | (char)unit;
 
-        char* message_buffer = new char[8];
+        char message_buffer[8];
 
         message_buffer[0] = start_condition;
         message_buffer[1] = (char)0xE5;
@@ -148,8 +147,8 @@ std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
                     char  rainpot_value    = this->formatButtonValue(unit, ctl_index, normalized_value);
 
                     if (this->debug) {
-                        std::cout << BACO_GRAY << "    ctl:" << ctl_index << " p:" << param_path << " norm. val:" << normalized_value
-                                  << " final val: " << +rainpot_value << BACO_END << std::endl;
+                        std::cout << BACO_GRAY << "    ctl:" << ctl_index << " p:" << param_path << " norm_val:" << normalized_value
+                                  << " final_val: " << +rainpot_value << BACO_END << std::endl;
                     }
 
                     message_buffer[ctl_index + 2] = rainpot_value;
@@ -160,11 +159,40 @@ std::map<int, serial_queue_entry_t> DataHandler::makeSetButtonValueMessages()
         if (this->debug) {
             std::cout << std::endl;
         }
-        serial_queue_entry.buffer = message_buffer;
+
+        std::copy(std::begin(message_buffer), std::end(message_buffer), std::begin(serial_queue_entry.buffer));
         serial_messages.insert(std::make_pair(unit, serial_queue_entry));
         unit_iterator++;
     }
     return serial_messages;
+}
+
+serial_queue_entry_t DataHandler::makeSetButtonMessage(int unit, int ctl_index, std::string param_path)
+{
+    serial_queue_entry_t serial_queue_entry;
+
+    char message_buffer[8];
+
+    message_buffer[0] = 0xF0 | (char)unit;
+
+    message_buffer[1] = (char)0xE5;
+    message_buffer[2] = (char)0x0F;
+    message_buffer[3] = (char)0x0F;
+    message_buffer[4] = (char)0x0F;
+    message_buffer[5] = (char)0x0F;
+    message_buffer[6] = (char)0x0F;
+    message_buffer[7] = (char)0x0F;
+
+    serial_queue_entry.buffer_size = 8;
+
+    if (this->path_values.find(param_path) != this->path_values.end()) {
+        float normalized_value        = this->path_values[param_path].value;
+        char  rainpot_value           = this->formatButtonValue(unit, ctl_index, normalized_value);
+        message_buffer[ctl_index + 2] = rainpot_value;
+    }
+    std::copy(std::begin(message_buffer), std::end(message_buffer), std::begin(serial_queue_entry.buffer));
+
+    return serial_queue_entry;
 }
 
 bool DataHandler::contollerIsAssigned(int unit, int controller)
@@ -217,7 +245,6 @@ float DataHandler::makeValueFLoat(int unit, int controler, int raw_value)
             }
         }
     }
-
     return (float)((int)(normalized_value * 1000.)) / 1000.f;
 }
 
@@ -229,8 +256,7 @@ void DataHandler::clearPathValues()
 {
     path_value_map_t::iterator iterator = this->path_values.begin();
     while (iterator != this->path_values.end()) {
-        std::string  path              = iterator->first;
-        path_value_t path_value        = iterator->second;
+        std::string path               = iterator->first;
         this->path_values[path].value  = 0.;
         this->path_values[path].loaded = false;
         this->path_values[path].locked = false;
@@ -243,6 +269,7 @@ void DataHandler::setPathValue(std::string path, float value)
     if (this->path_values.find(path) != this->path_values.end()) {
         this->path_values[path].loaded = true;
         this->path_values[path].value  = value;
+        this->path_values[path].locked = false;
     }
 }
 
@@ -273,8 +300,8 @@ void DataHandler::printPathValues()
         std::string  path  = pv_iterator->first;
         path_value_t value = pv_iterator->second;
 
-        std::cout << BACO_GRAY << this->rightPad(path, 70) << "" << std::setw(8) << value.value << "" << std::setw(8) << value.loaded
-                  << "" << std::setw(8) << value.locked << BACO_END << std::endl;
+        std::cout << BACO_GRAY << this->rightPad(path, 70) << "" << std::setw(8) << std::fixed << std::setprecision(6) << value.value
+                  << "" << std::setw(8) << value.loaded << "" << std::setw(8) << value.locked << BACO_END << std::endl;
         pv_iterator++;
     }
     std::cout << std::endl;
@@ -315,11 +342,10 @@ void DataHandler::printParamConfig(bool force_load)
     std::cout << BACO_GRAY "\n\n<-> Patcher Prests:" << BACO_END << std::endl;
     preset_index_map_t::iterator preset_iterator = presets.begin();
 
-    std::cout << BACO_GRAY << "" << std::setw(10) << "Name"
-              << "" << std::setw(7) << "Index" << BACO_END << std::endl;
+    std::cout << BACO_GRAY << "" << this->rightPad("Name", 25) << "" << this->rightPad("Index", 7) << BACO_END << std::endl;
 
     while (preset_iterator != presets.end()) {
-        std::cout << BACO_GRAY << "" << std::setw(10) << preset_iterator->first << "" << std::setw(7) << preset_iterator->second
+        std::cout << BACO_GRAY << "" << this->rightPad(preset_iterator->first, 20) << "" << std::setw(7) << preset_iterator->second
                   << BACO_END << std::endl;
         preset_iterator++;
     }
@@ -341,62 +367,143 @@ char DataHandler::formatButtonValue(int unit, int button_index, float raw_value)
     return formatted_value;
 }
 
+void DataHandler::unassignControllerByPath(std::string path)
+{
+    int  existing_unit      = -1;
+    int  existing_ctl_index = -1;
+    bool path_is_assigned   = getUnitCtlIndexFromPath(path, existing_unit, existing_ctl_index);
+    if (this->debug) {
+        std::cout << BACO_YELLO << "Unassigning path: " << path << BACO_END << std::endl;
+    }
+    if (path_is_assigned) {
+        this->param_config[existing_unit].erase(existing_ctl_index);
+    }
+
+    // remove path value
+    if (this->path_values.find(path) != this->path_values.end()) {
+        this->path_values.erase(path);
+    }
+};
+
+void DataHandler::updateMetaData(std::string raw_data_string, std::string path)
+{
+
+    Json::Value root             = this->parseStringToJSON(raw_data_string);
+    Json::Value config_root_node = root["rainpots"];
+    this->unassignControllerByPath(path);
+    if (config_root_node.isNull()) {
+        if (this->debug) {
+            std::cerr << BACO_RED << "No rainpots config data in meta data.  Param not assigned to controller." << BACO_END
+                      << std::endl;
+        }
+        return;
+    }
+    if (!config_root_node.isNull()) {
+        Json::Value config_unit_node     = config_root_node["unit"];
+        Json::Value config_ctl_node      = config_root_node["ctl"];
+        Json::Value config_steps_node    = config_root_node["steps"];
+        Json::Value config_centered_node = config_root_node["center"];
+        if (config_unit_node.isNull()) {
+            if (this->debug) {
+                std::cerr << BACO_RED << "Unit decalration missing in rainpots meta data. Param not assigned to controller."
+                          << BACO_END << std::endl;
+            }
+            return;
+        }
+        if (config_ctl_node.isNull()) {
+            if (this->debug) {
+                std::cerr << BACO_RED << "Ctl decalration missing in rainpots meta data. Param not assigned to controller." << BACO_END
+                          << std::endl;
+            }
+            return;
+        }
+
+        int unit      = config_unit_node.asInt();
+        int ctl_index = config_ctl_node.asInt();
+
+        // remove path value
+        if (this->path_values.find(path) != this->path_values.end()) {
+            this->path_values.erase(path);
+        }
+
+        // set the new param configuration
+        bool centered = false;
+        if (!config_centered_node.isNull()) {
+            centered = config_centered_node.asBool();
+        }
+
+        int steps = -1;
+        if (!config_steps_node.isNull()) {
+            steps = config_steps_node.asInt();
+            if (steps <= 0) {
+                steps = -1;
+            } else if (steps < 2) {
+                steps = 2;
+            }
+        }
+
+        ctl_settings_t new_ctl_settings { centered, steps, path };
+        // If no controller in this unit is assigned - add the unit and the controller
+        if (this->param_config.find(unit) == this->param_config.end()) {
+            this->param_config.insert(std::make_pair(unit, std::map<int, ctl_settings_t>()));
+            this->param_config.at(unit).insert(std::make_pair(ctl_index, new_ctl_settings));
+        } else if (!this->contollerIsAssigned(unit, ctl_index)) {
+            // The unit exits in param_config, but not the controller
+            this->param_config[unit].insert(std::make_pair(ctl_index, new_ctl_settings));
+        } else {
+            // controller is already assigned - update settings
+            this->param_config[unit][ctl_index] = new_ctl_settings;
+        }
+
+        // add new path value
+        path_value_t new_path_value;
+        new_path_value.locked = true;
+
+        this->path_values.insert(std::make_pair(path, new_path_value));
+        if (this->debug) {
+            std::cout << BACO_YELLO << "Assigning path " << path << " to unit: " << unit << ", ctl: " << ctl_index << BACO_END
+                      << std::endl;
+        }
+    }
+}
+
 /* protected methods*/
 
 void DataHandler::loadConfig()
 {
-    std::map<int, std::map<int, ctl_settings_t>> config_map;
-    std::string                                  rawJson;
-    JSONCPP_STRING                               err;
+    config_map_t   config_map;
+    std::string    raw_json;
+    JSONCPP_STRING err;
+    CURL*          curl;
+    // CURLcode
 
-    CURL*    curl;
-    CURLcode res;
     curl = curl_easy_init();
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, "localhost");
         curl_easy_setopt(curl, CURLOPT_PORT, 5678);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, DataHandler::writeCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &rawJson);
-        res = curl_easy_perform(curl);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &raw_json);
+        curl_easy_perform(curl);
         curl_easy_cleanup(curl);
     }
     try {
-        Json::Value root = this->parseStringToJSON(rawJson);
-
-        // Parsing Parameters into map
-        const Json::Value params = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["params"]["CONTENTS"];
-
-        std::vector<std::string> param_names = params.getMemberNames();
-
-        for (int i = 0; i < param_names.size(); i++) {
-            // Member name and value
-            Json::Value rainpot_config = params[param_names[i]]["CONTENTS"]["meta"]["CONTENTS"]["rainpots"];
-            if (!rainpot_config.isNull()) {
-                Json::Value unit            = rainpot_config["CONTENTS"]["unit"]["VALUE"];
-                Json::Value ctl             = rainpot_config["CONTENTS"]["ctl"]["VALUE"];
-                Json::Value center          = rainpot_config["CONTENTS"]["center"]["VALUE"];
-                Json::Value steps           = rainpot_config["CONTENTS"]["steps"]["VALUE"];
-                Json::Value normalized_path = params[param_names[i]]["CONTENTS"]["normalized"]["FULL_PATH"];
-
-                if (!unit.isNull() && !ctl.isNull()) {
-                    int         value_unit   = unit.asInt();
-                    int         value_ctl    = ctl.asInt();
-                    bool        value_center = (center.isNull()) ? false : center.asBool();
-                    int         value_steps  = (steps.isNull()) ? -1 : steps.asInt();
-                    std::string value_path   = normalized_path.asString();
-
-                    if (config_map.find(value_unit) == config_map.end()) {
-                        config_map.insert(std::make_pair(value_unit, std::map<int, ctl_settings_t>()));
+        Json::Value root           = this->parseStringToJSON(raw_json);
+        Json::Value instances_root = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"];
+        for (Json::ValueIterator itr = instances_root.begin(); itr != instances_root.end(); itr++) {
+            std::string instance_index = itr.key().asString();
+            int         instance_index_numeric;
+            int         result = sscanf(instance_index.c_str(), "%d", &instance_index_numeric);
+            if (result == 1) {
+                // Continue iterating into Json
+                Json::Value instance_data = instances_root[itr.key().asString()]["CONTENTS"]["params"]["CONTENTS"];
+                if (!instance_data.isNull()) {
+                    for (Json::ValueIterator itr_instance = instance_data.begin(); itr_instance != instance_data.end();
+                         itr_instance++) {
+                        this->extractParmFromJson(instance_data, &config_map);
                     }
-                    ctl_settings_t ctl_settings;
-                    ctl_settings.center = value_center;
-                    ctl_settings.steps  = value_steps;
-                    ctl_settings.path   = value_path;
-                    config_map[value_unit].insert(std::make_pair(value_ctl, ctl_settings));
-                    path_value_t path_value_entry;
-                    this->path_values.insert(std::make_pair(value_path, path_value_entry));
                 }
             }
+            std::cout << std::endl;
         }
         this->param_config = config_map;
 
@@ -404,7 +511,7 @@ void DataHandler::loadConfig()
         const Json::Value presets
             = root["CONTENTS"]["rnbo"]["CONTENTS"]["inst"]["CONTENTS"]["0"]["CONTENTS"]["presets"]["CONTENTS"]["entries"]["VALUE"];
         preset_index_map_t preset_index_map;
-        for (int preset_index = 0; preset_index < presets.size(); preset_index++) {
+        for (uint preset_index = 0; preset_index < presets.size(); preset_index++) {
             preset_index_map.insert(std::make_pair(presets[preset_index].asString(), preset_index));
         }
         this->presets = preset_index_map;
@@ -412,6 +519,88 @@ void DataHandler::loadConfig()
         std::cerr << "JSON parsing error." << std::endl;
         return;
     }
+}
+
+void DataHandler::extractParmFromJson(Json::Value param_data_content, config_map_t* ptr_config_map, uint recursion_depts)
+{
+    Json::Value meta_data       = param_data_content["meta"];
+    Json::Value normalized_data = param_data_content["normalized"];
+    Json::Value rainpot_config  = param_data_content["meta"]["CONTENTS"]["rainpots"];
+    Json::Value default_value;
+
+    if (meta_data.isNull() && normalized_data.isNull()) {
+        std::vector<std::string> sub_param_names = param_data_content.getMemberNames();
+        recursion_depts                          = recursion_depts + 1;
+        if (recursion_depts > 10) { // Make sure we dont get stuck in infinate recursions. Especially because of the iteration bug
+                                    // described below (Line: 417)
+            std::cerr << BACO_RED << "Max Recursion Reched while paring Rainpots configuration." << BACO_END << std::endl;
+            return;
+        }
+
+        for (uint i = 0; i < sub_param_names.size(); i++) {
+            // For some reasons I cannot identify the sub keys 'meta' and 'normalized' appear sometimes
+            // This is a workaround.
+            if ((std::string)sub_param_names[i] != "meta" && (std::string)sub_param_names[i] != "normalized") {
+                if (!param_data_content[sub_param_names[i]]["CONTENTS"].isNull()) {
+                    this->extractParmFromJson(                              //
+                        param_data_content[sub_param_names[i]]["CONTENTS"], //
+                        ptr_config_map,
+                        recursion_depts //
+                    );
+                }
+            }
+        }
+    } else if (!rainpot_config.isNull()) {
+        Json::Value unit            = rainpot_config["CONTENTS"]["unit"]["VALUE"];
+        Json::Value ctl             = rainpot_config["CONTENTS"]["ctl"]["VALUE"];
+        Json::Value center          = rainpot_config["CONTENTS"]["center"]["VALUE"];
+        Json::Value steps           = rainpot_config["CONTENTS"]["steps"]["VALUE"];
+        Json::Value normalized_path = param_data_content["normalized"]["FULL_PATH"];
+
+        if (!unit.isNull() && !ctl.isNull()) {
+            int         value_unit   = unit.asInt();
+            int         value_ctl    = ctl.asInt();
+            bool        value_center = (center.isNull()) ? false : center.asBool();
+            int         value_steps  = (steps.isNull()) ? -1 : steps.asInt();
+            std::string value_path   = normalized_path.asString();
+
+            if (ptr_config_map->find(value_unit) == ptr_config_map->end()) {
+                ptr_config_map->insert(std::make_pair(value_unit, std::map<int, ctl_settings_t>()));
+            }
+            ctl_settings_t ctl_settings;
+            ctl_settings.center = value_center;
+            ctl_settings.steps  = value_steps;
+            ctl_settings.path   = value_path;
+            ptr_config_map->at(value_unit).insert(std::make_pair(value_ctl, ctl_settings));
+            path_value_t path_value_entry;
+            this->path_values.insert(std::make_pair(value_path, path_value_entry));
+        }
+    }
+}
+
+bool DataHandler::getUnitCtlIndexFromPath(std::string path, int& unit, int& ctl_index)
+{
+    bool has_config = false;
+
+    config_map_t::iterator unit_iterator = this->param_config.begin();
+
+    while (unit_iterator != this->param_config.end()) {
+        auto ctl_iterator = unit_iterator->second.begin(); // std::map<int, ctl_settings_t>::iterator
+        while (ctl_iterator != unit_iterator->second.end()) {
+            if (ctl_iterator->second.path == path) {
+                has_config = true;
+                unit       = unit_iterator->first;
+                ctl_index  = ctl_iterator->first;
+                break;
+            }
+            ctl_iterator++;
+        }
+        if (has_config) {
+            break;
+        }
+        unit_iterator++;
+    }
+    return has_config;
 }
 
 float DataHandler::scaleValue(float x, float in_min, float in_max, float out_min, float out_max)
