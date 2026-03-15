@@ -1,7 +1,7 @@
 CC = g++
 # CC = gcc
-CFLAGGS = -g -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
-CFLAGGS_OPTIMIZED = -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic
+CFLAGGS = -g -Wall -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic -std=c++20
+CFLAGGS_OPTIMIZED = -pthread -lstdc++ -ljsoncpp -lcurl -rdynamic -std=c++20
 
 #€-lwiringPi
 #-Werror
@@ -11,6 +11,7 @@ BUILD_PATH= build/
 SOURCE_PATH= src src/*  src/*/* src/*/*  tinyosc
 TARGET = main
 OUTNAME = rainpots
+MAIN_FILE = main
 # TARGET = serial-test
 # TARGET = json_test
 # TARGET = stacktraceteest
@@ -41,6 +42,7 @@ clean:
 	rm -rf $(BUILD_PATH)*.o 
 	rm -rf $(BUILD_PATH)$(TARGET)
 	rm -rf $(BUILD_PATH)$(OUTNAME)
+	rm -rf $(BUILD_PATH)$(OUTNAME)-dev
 
 $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo "\n***************************\n"
@@ -48,9 +50,16 @@ $(TARGET): $(SRCS) $(SRCS_CPP)
 	@echo $(SRCS_CPP_FORMATTED)
 	@echo "\n***************************\n"
 # $(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$@ 
-# $(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$(OUTNAME)
-	$(CC) $^ $(TARGET).cpp $(CFLAGGS_OPTIMIZED) -o $(BUILD_PATH)$(OUTNAME)
-	
+#$(CC) $^ $(TARGET).cpp $(CFLAGGS_OPTIMIZED) -o $(BUILD_PATH)$(OUTNAME)
+	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$(OUTNAME)
+	@echo "\n"
+
+rainpots: $(SRCS) $(SRCS_CPP)
+	@echo "\n***************************\n"
+	@echo $(SRCS_FORMATTED)
+	@echo $(SRCS_CPP_FORMATTED)
+	@echo "\n***************************\n"
+	$(CC) $^ $(TARGET).cpp $(CFLAGGS) -o $(BUILD_PATH)$(OUTNAME)
 	@echo "\n"
 
 install:

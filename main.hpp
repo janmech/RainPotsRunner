@@ -14,6 +14,7 @@ extern "C" {
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #ifdef __cplusplus
 }
@@ -22,13 +23,18 @@ extern "C" {
 #include "src/osc/OscListener.hpp"
 #include "src/osc/OscSender.hpp"
 #include "src/serial/SerialConnector.hpp"
+#include "src/serial/SerialSender.hpp"
+#include "src/serial/Pinger.hpp"
 #include <iostream>
+#include <string>
 
 #include <execinfo.h>
-#include <sys/wait.h>
 #include <sys/prctl.h>
+#include <sys/wait.h>
 
 #endif
+
+#define  VERSION "1.5"
 
 void handle_sigint();
 void print_trace_gdb();

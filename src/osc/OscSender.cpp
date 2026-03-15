@@ -4,49 +4,45 @@ void OscSender::threadLoop()
 {
     this->addRNBOListenter();
     while (this->keep_running) {
-        if (this->ts_message_queue.size() > 0) {
-            queue_entry_message_t* msg = this->ts_message_queue.pop();
+        queue_entry_message_t* msg   = this->ts_message_queue.pop();
+        if (this->debug) {
+            std::cout << BACO_GRAY << "<-> Processing OSC message: " << BACO_END;
+            for (int i = 0; i < msg->buffer_size; i++) {
+                printf("0x%02X ", msg->buffer[i]);
+            }
+            std::cout << std::endl;
+        }
+        msg_osc_t message_data;
+        this->getOscMessageData(msg, &message_data);
+        if (message_data.path != "") {
+            const char* path   = message_data.path.c_str();
+            const char* format = message_data.format.c_str();
             if (this->debug) {
-                std::cout << BACO_GRAY << "<-> Processing OSC message: " << BACO_END;
-                for (size_t i = 0; i < msg->buffer_size; i++) {
-                    printf("0x%02X ", msg->buffer[i]);
+                std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << " " << path << " " << format;
+                if (format[0] == 'f') {
+                    std::cout << " " << message_data.val_float ;
+                } else if (format[0] == 's') {
+                    std::cout << " " << message_data.val_string;
+                } else {
+                    std::cout << " usupported format:" << format ;
                 }
                 std::cout << std::endl;
             }
-            msg_osc_t message_data;
-            this->getOscMessageData(msg, &message_data);
-            if (message_data.path != "") {
-                const char* path   = message_data.path.c_str();
-                const char* format = message_data.format.c_str();
-                if (this->debug) {
-                    std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << std::endl
-                              << "\t" << path << std::endl
-                              << "\t" << format << std::endl;
-                    if (format[0] == 'f') {
-                        std::cout << "\t" << message_data.val_float << std::endl;
-                    } else if (format[0] == 's') {
-                        std::cout << "\t" << message_data.val_string << std::endl;
-                    } else {
-                        std::cout << "\t usupported format:" << format << std::endl;
-                    }
-                }
-                switch (msg->type) {
-                case OSC_MESSAGE_TYPE_CC:
-                    this->sendMessage(path, format, message_data.val_float);
-                    break;
-                case OSC_MESSAGE_TYPE_PRESET_LOAD:
-                case OSC_MESSAGE_TYPE_PRESET_SAVE: {
-                    const char* string_val = message_data.val_string.c_str();
-                    this->sendMessage(path, format, string_val);
-                } break;
+            switch (msg->type) {
+            case OSC_MESSAGE_TYPE_CC:
+                this->sendMessage(path, format, message_data.val_float);
+                break;
+            case OSC_MESSAGE_TYPE_PRESET_LOAD:
+            case OSC_MESSAGE_TYPE_PRESET_SAVE: {
+                const char* string_val = message_data.val_string.c_str();
+                this->sendMessage(path, format, string_val);
+            } break;
 
-                default:
-                    std::cerr << "OscSender: Invalid mesage type" << std::endl;
-                    break;
-                }
+            default:
+                std::cerr << "OscSender: Invalid mesage type" << std::endl;
+                break;
             }
         }
-        usleep(THREAD_LOOP_SLEEP_US);
     }
 
     close(this->socket_out);
@@ -74,7 +70,9 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
         osc_message_data->format = "s";
         /* Don't save preset "000" it's reserved for default settings created in Max/RNBO before export*/
         if ((int)queue_message->buffer[1] != 0) {
-            osc_message_data->path = "/rnbo/inst/0/presets/save";
+            // osc_message_data->path = "/rnbo/inst/0/presets/save";
+            osc_message_data->path = "/rnbo/inst/control/sets/presets/save";
+
         } else {
             osc_message_data->path = "";
         }
@@ -84,7 +82,8 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
     } break;
     case OSC_MESSAGE_TYPE_PRESET_LOAD: {
         osc_message_data->format = "s";
-        osc_message_data->path   = "/rnbo/inst/0/presets/load";
+        // osc_message_data->path   = "/rnbo/inst/0/presets/load";
+        osc_message_data->path   = "/rnbo/inst/control/sets/presets/load";
         std::stringstream preset_name;
         preset_name << std::setw(3) << std::setfill('0') << (int)queue_message->buffer[1];
         osc_message_data->val_string = preset_name.str();
@@ -130,7 +129,8 @@ int OscSender::openOutSocket()
     out_addr.sin_family = AF_INET;
     out_addr.sin_port   = htons(1234);
     this->addr_out      = out_addr;
-    int res             = inet_pton(AF_INET, "127.0.0.1", &out_addr.sin_addr);
+    // int res             = inet_pton(AF_INET, "127.0.0.1", &out_addr.sin_addr);
+    inet_pton(AF_INET, "127.0.0.1", &out_addr.sin_addr);
 
     bind(this->socket_out, (struct sockaddr*)&this->addr_out, sizeof(struct sockaddr_in));
     return this->socket_out;
