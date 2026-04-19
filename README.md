@@ -14,9 +14,15 @@ sudo raspi-config : Serialport
 
 ### 3. Clone Repo and Build
 `cd ~/Documents`  
+
 `git clone git@github.com:janmech/RainPotsRunner.git`
+
 `cd RainPotsRunner`
+
+`mkdir build`
+
 `make`
+
 `make install`
 
 
