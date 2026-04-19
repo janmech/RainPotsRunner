@@ -31,7 +31,7 @@ namespace fixioctl {
 #include "../osc/OscSender.hpp"
 #include "../rainpot_types.hpp"
 
-#define SERIAL_PORT_PATH     "/dev/ttyAMA0"
+#define SERIAL_PORT_PATH     "/dev/serial0"
 #define SERIAL_IN_BUFFER_LEN 100
 
 #define MSG_CC_STATUS_BIT_MASK  0x0B
