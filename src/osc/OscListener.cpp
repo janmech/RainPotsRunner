@@ -98,7 +98,7 @@ void OscListener::threadLoop()
                         /* When loading immediatle the presets don't show up. Give  RNBO time to finish writing the config file*/
                         // TODO: See if there is a more solid solution. This might fail patches with a lot of params. Maybe ask
                         // Alex Normann.
-                        usleep(200 * 1000);
+                        std::this_thread::sleep_for(std::chrono::microseconds(200));
                         this->data_handler->getParams(true);
                         this->patcher_load_received = false;
                         if (this->debug) {
@@ -128,10 +128,6 @@ void OscListener::threadLoop()
                         this->data_handler->setCollectValues(false);
                         std::string preset_name = std::string(tosc_getNextString(&osc));
                         this->setRainPotsButtons(preset_name);
-                        if (this->debug) {
-                            std::cout << BACO_GRAY "<-> Finished loading preset: " << preset_name << BACO_END << std::endl
-                                      << std::endl;
-                        }
                     }
 
                     std::string suffix = "normalized";
@@ -196,26 +192,18 @@ void OscListener::threadLoop()
 
 void OscListener::setRainPotsButtons(std::string preset_name)
 {
-    if (this->debug) {
-        std::cout << std::endl << BACO_GRAY << "<-> Finished loading preset: " << preset_name << BACO_END << std::endl << std::endl;
-        std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
+    if (this->button_timer_thread.joinable()) {
+        this->button_timer_thread.join();
     }
     if (this->debug) {
-        this->data_handler->printPathValues();
+        std::cout << BACO_GRAY "<-> Finished loading preset: " << preset_name << BACO_END << std::endl << std::endl;
     }
-    std::map<int, serial_queue_entry_t>           ser_messages     = this->data_handler->makeSetButtonValueMessages();
-    std::map<int, serial_queue_entry_t>::iterator ser_msg_iterator = ser_messages.begin();
-
-    while (ser_msg_iterator != ser_messages.end()) {
-        this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
-        ser_msg_iterator++;
-    }
-
+    volatile int preset_name_mumeric = 0;
     try {
         std::string::size_type sz;
-        volatile int           preset_name_mumeric = std::stoi(preset_name, &sz);
-        preset_name_mumeric                        = (preset_name_mumeric < 0) ? 0 : preset_name_mumeric;
-        preset_name_mumeric                        = (preset_name_mumeric > 99) ? 99 : preset_name_mumeric;
+        preset_name_mumeric = std::stoi(preset_name, &sz);
+        preset_name_mumeric = (preset_name_mumeric < 0) ? 0 : preset_name_mumeric;
+        preset_name_mumeric = (preset_name_mumeric > 99) ? 99 : preset_name_mumeric;
 
         char index_byte = (char)preset_name_mumeric;
 
@@ -229,11 +217,27 @@ void OscListener::setRainPotsButtons(std::string preset_name)
         msg_set_preset.buffer_size = 4;
 
         this->serial_connector->addToMessageQueue(&msg_set_preset);
-        usleep(1000);
-
     } catch (...) {
         if (this->debug) {
-            std::cerr << BACO_RED << "Loaded preset name cannot be tranlated to a number" << BACO_END << std::endl;
+            std::cerr << BACO_RED << "Loaded preset name '" << preset_name << "' cannot be tranlated to a number" << BACO_END
+                      << std::endl;
         }
     }
+
+    if (this->debug) {
+        std::cout << std::endl << BACO_GRAY << "<-> Finished loading params" << BACO_END << std::endl << std::endl;
+        this->data_handler->printPathValues();
+    }
+
+    // we do this asynchronysly in a separate thread not to overwhelm the RainPots. If there are many in a chain, messages can get lost
+    this->button_timer_thread = std::thread([this]() {
+        std::map<int, serial_queue_entry_t>           ser_messages     = this->data_handler->makeSetButtonValueMessages();
+        std::map<int, serial_queue_entry_t>::iterator ser_msg_iterator = ser_messages.begin();
+
+        while (ser_msg_iterator != ser_messages.end()) {
+            this->serial_connector->addToMessageQueue(&ser_msg_iterator->second);
+            ser_msg_iterator++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+    });
 }

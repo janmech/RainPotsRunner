@@ -1,12 +1,13 @@
 #ifndef __TSQueue__
 #define __TSQueue__
+
 #include <condition_variable>
-#include <iostream>
 #include <mutex>
 #include <queue>
 
-// Thread-safe queue
-template <typename T> class TSQueue {
+// Added SIZE_LIMIT as a template parameter
+template <typename T, std::size_t SIZE_LIMIT = 100> 
+class TSQueue {
 private:
     std::queue<T>           m_queue;
     std::mutex              m_mutex;
@@ -15,37 +16,37 @@ private:
 public:
     void push(T item)
     {
-
-        // Acquire lock
         std::unique_lock<std::mutex> lock(m_mutex);
 
-        // Add item
-        m_queue.push(item);
+        // Check if the queue is full before adding
+        if (m_queue.size() >= SIZE_LIMIT) {
+            return; // Ignore the entry
+        }
 
-        // Notify one thread that
-        // is waiting
+        m_queue.push(std::move(item));
+        
+        // Notify a waiting pop() that data is available
         m_cond.notify_one();
     }
 
-    int size()
+    std::size_t size()
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        int                          size = m_queue.size();
-        m_cond.notify_one();
-        return size;
+        return m_queue.size();
     }
 
     T pop()
     {
         std::unique_lock<std::mutex> lock(m_mutex);
 
-        // wait until queue is not empty
+        // Wait until queue is not empty
         m_cond.wait(lock, [this]() { return !m_queue.empty(); });
 
-        T item = m_queue.front();
+        T item = std::move(m_queue.front());
         m_queue.pop();
 
         return item;
     }
 };
+
 #endif

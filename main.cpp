@@ -85,7 +85,9 @@ int main(int argc, char* argv[])
     thread_serial_connector = serial_connector.start();
 
     while (serial_connector.getFileDescriptor() == NULL) {
-        usleep(200 * 1000);
+        //usleep(200 * 1000);
+        std::this_thread::sleep_for(std::chrono::microseconds(200));
+        
         if (debug) {
             std::cout << BACO_YELLO << "SerialConnector Waiting for serial file descriptor..." << std::endl;
         }

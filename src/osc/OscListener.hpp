@@ -17,8 +17,8 @@ extern "C" {
 #include <regex>
 #include <string>
 #include <string_view>
-#include <vector>
 #include <time.h>
+#include <vector>
 
 class OscListener : public ThreadClass {
 public:
@@ -32,12 +32,13 @@ public:
     ~OscListener() { /* empty */ }
 
 protected:
-    bool                                           debug                 = false;
-    bool                                           patcher_load_received = false;
-    DataHandler*                                   data_handler;
-    SerialConnector*                               serial_connector;
-    void                                           threadLoop();
-    void                                           setRainPotsButtons(std::string preset_name = "");
+    bool             debug                 = false;
+    bool             patcher_load_received = false;
+    DataHandler*     data_handler;
+    SerialConnector* serial_connector;
+    std::thread      button_timer_thread;
+    void             threadLoop();
+    void             setRainPotsButtons(std::string preset_name = "");
 
 private:
     static void* InternalThreadEntryFunc(void* This)

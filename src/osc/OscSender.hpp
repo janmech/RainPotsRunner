@@ -28,26 +28,23 @@ public:
         this->data_handler = data_handler;
     }
 
-    ~OscSender()
-    { /* empty */
-    }
+    ~OscSender() { /* empty */ }
     void      addRNBOListenter();
     void      addToMessageQueue(queue_entry_message_t* message);
     void      sendMessage(const char* address, const char* format, ...);
     pthread_t getThreadId() { return pthread_self(); }
 
 protected:
-    bool                               debug = false;
-    DataHandler*                       data_handler;
-    int                                socket_out = -1;
-    struct sockaddr_in                 addr_out;
-    std::deque<queue_entry_message_t*> message_queue;
-    TSQueue<queue_entry_message_t*>    ts_message_queue;
+    bool                                 debug = false;
+    DataHandler*                         data_handler;
+    int                                  socket_out = -1;
+    struct sockaddr_in                   addr_out;
+    std::deque<queue_entry_message_t*>   message_queue;
+    TSQueue<queue_entry_message_t*, 400> ts_message_queue;
 
-    float makeValueFLoat(int unit, int controler, int raw_value);
-    int   openOutSocket();
-    void  threadLoop();
-    void  getOscMessageData(queue_entry_message_t* queue_message, msg_osc_t* osc_message_data);
+    int  openOutSocket();
+    void threadLoop();
+    void getOscMessageData(queue_entry_message_t* queue_message, msg_osc_t* osc_message_data);
 
 private:
     static void* InternalThreadEntryFunc(void* This)

@@ -4,16 +4,14 @@ void SerialSender::threadLoop()
 {
 
     while (this->p_fd == NULL) {
-        usleep(100 * 1000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
     while (this->keep_running) {
-        serial_queue_entry_t * entry = this->ptr_serial_connector->popFromMessageQueue();
+        serial_queue_entry_t* entry = this->ptr_serial_connector->popFromMessageQueue();
 
         // FIXME: This is a work around because sometimes buffersize is negative (uninitialized?). Find real cause and fix it.
         if (entry->buffer_size > 0) {
             write(*this->p_fd, entry->buffer, entry->buffer_size);
-            usleep(2000); // FIXME: wokraround not lo overload the RainPots. Look for a more solid solution.
-
             if (this->debug) {
                 std::cout << BACO_MAGENTA << "<-- Sending serial packet: [" << entry->buffer_size << "] " << BACO_END;
                 std::cout << BACO_GRAY;
@@ -22,6 +20,7 @@ void SerialSender::threadLoop()
                 }
                 std::cout << BACO_END << std::endl;
             }
+            std::this_thread::sleep_for(std::chrono::milliseconds(8));
         }
     }
     if (this->debug) {

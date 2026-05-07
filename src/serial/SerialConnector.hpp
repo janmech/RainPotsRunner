@@ -65,13 +65,13 @@ public:
     TSQueue<serial_queue_entry_t*>* getMessageQueue();
 
 protected:
-    TSQueue<serial_queue_entry_t*> ts_message_queue;
-    bool                           debug            = false;
-    int                            baudrate         = 380400;
-    std::string                    serial_port_path = SERIAL_PORT_PATH;
-    OscSender*                     osc_sender;
-    DataHandler*                   data_handler;
-    void                           threadLoop();
+    TSQueue<serial_queue_entry_t*, 100> ts_message_queue;
+    bool                                debug            = false;
+    int                                 baudrate         = 380400;
+    std::string                         serial_port_path = SERIAL_PORT_PATH;
+    OscSender*                          osc_sender;
+    DataHandler*                        data_handler;
+    void                                threadLoop();
 
 private:
     int          fd;
@@ -82,7 +82,7 @@ private:
         return NULL;
     }
 
-    pthread_t  _thread;
+    pthread_t _thread;
 };
 
 #endif // __SERIAL_CONNECTOR__

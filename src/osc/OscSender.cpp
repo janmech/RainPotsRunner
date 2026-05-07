@@ -4,7 +4,7 @@ void OscSender::threadLoop()
 {
     this->addRNBOListenter();
     while (this->keep_running) {
-        queue_entry_message_t* msg   = this->ts_message_queue.pop();
+        queue_entry_message_t* msg = this->ts_message_queue.pop();
         if (this->debug) {
             std::cout << BACO_GRAY << "<-> Processing OSC message: " << BACO_END;
             for (int i = 0; i < msg->buffer_size; i++) {
@@ -20,11 +20,11 @@ void OscSender::threadLoop()
             if (this->debug) {
                 std::cout << BACO_MAGENTA << "<-- Sending OSC message to: " << BACO_END << " " << path << " " << format;
                 if (format[0] == 'f') {
-                    std::cout << " " << message_data.val_float ;
+                    std::cout << " " << message_data.val_float;
                 } else if (format[0] == 's') {
                     std::cout << " " << message_data.val_string;
                 } else {
-                    std::cout << " usupported format:" << format ;
+                    std::cout << " usupported format:" << format;
                 }
                 std::cout << std::endl;
             }
@@ -83,7 +83,7 @@ void OscSender::getOscMessageData(queue_entry_message_t* queue_message, msg_osc_
     case OSC_MESSAGE_TYPE_PRESET_LOAD: {
         osc_message_data->format = "s";
         // osc_message_data->path   = "/rnbo/inst/0/presets/load";
-        osc_message_data->path   = "/rnbo/inst/control/sets/presets/load";
+        osc_message_data->path = "/rnbo/inst/control/sets/presets/load";
         std::stringstream preset_name;
         preset_name << std::setw(3) << std::setfill('0') << (int)queue_message->buffer[1];
         osc_message_data->val_string = preset_name.str();
