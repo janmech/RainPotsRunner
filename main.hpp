@@ -34,7 +34,7 @@ extern "C" {
 
 #endif
 
-#define  VERSION "1.5"
+#define  VERSION "1.6.0"
 
 void handle_sigint();
 void print_trace_gdb();
